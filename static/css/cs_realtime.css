@@ -166,7 +166,7 @@
     transform: translate(-50%, -50%);
     cursor: pointer;
     z-index: 4;
-    box-shadow: 0 0 5px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.15);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.15);
     transition: transform 0.15s;
 }
 
@@ -180,14 +180,14 @@
 
 .ct-dot.dragging {
     transform: translate(-50%, -50%) scale(1.5);
-    box-shadow: 0 0 10px rgba(59,130,246,0.5), 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
     z-index: 5;
     background: #f59e0b;
 }
 
 .ct-dot.moved {
     background: #f59e0b;
-    box-shadow: 0 0 6px rgba(245,158,11,0.4);
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
 }
 
 .ct-dot-label {
@@ -197,7 +197,7 @@
     color: #64748b;
     white-space: nowrap;
     pointer-events: none;
-    z-index: 3;
+    z-index: 5;
     transform: translate(-50%, -100%);
 }
 
@@ -206,15 +206,15 @@
     font-size: 9px;
     font-weight: 600;
     color: #f1f5f9;
-    background: rgba(15,23,42,0.92);
+    background: rgba(15, 23, 42, 0.92);
     padding: 4px 7px;
     border-radius: 6px;
     white-space: nowrap;
     pointer-events: none;
     z-index: 5;
     transform: translate(-50%, -50%);
-    box-shadow: 0 3px 12px rgba(0,0,0,0.3);
-    border: 1px solid rgba(2,132,199,0.25);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(2, 132, 199, 0.25);
     letter-spacing: 0.02em;
 }
 
@@ -226,12 +226,12 @@
 .ct-tooltip.dragging {
     cursor: grabbing;
     z-index: 30;
-    background: rgba(30,41,59,0.95);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    background: rgba(30, 41, 59, 0.95);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
 .ct-tooltip.moved {
-    border-color: rgba(245,158,11,0.5);
+    border-color: rgba(245, 158, 11, 0.5);
 }
 
 .tooltip-val {

@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
         loadTensionData();
     });
 
-    window.addEventListener('resize', () => {});
+    window.addEventListener('resize', () => { });
 });
 
 async function loadCablePositions() {
@@ -119,7 +119,7 @@ function createCableDot(wrapper, pctX, pctY, tipX, tipY, label, sensorId, index)
     dot.dataset.type = "dot";
     dot.title = label;
     if (IS_ADMIN_CT) dot.addEventListener("mousedown", onCableDotMouseDown);
-    dot.addEventListener("click", function(e) {
+    dot.addEventListener("click", function (e) {
         if (!dot.classList.contains("moved")) {
             window.location.href = "/cable-tension/sensor/" + sensorId;
         }
@@ -130,7 +130,7 @@ function createCableDot(wrapper, pctX, pctY, tipX, tipY, label, sensorId, index)
     dotLabel.textContent = label;
     dotLabel.style.left = pctX + "%";
     var isB = label.slice(-1) === "B";
-    dotLabel.style.top = (isB ? pctY + 3 : pctY - 4) + "%";
+    dotLabel.style.top = (isB ? pctY + 6 : pctY - 6) + "%";
     dotLabel.style.transform = isB ? "translate(-50%, 0)" : "translate(-50%, -100%)";
     dotLabel.dataset.sensorId = sensorId;
     dotLabel.dataset.index = index;
@@ -181,7 +181,7 @@ function onCableMouseMove(e) {
     if (dragElCt._ctLabel) {
         dragElCt._ctLabel.style.left = newLeft + "%";
         var isB = dragElCt._ctLabel.textContent.slice(-1) === "B";
-        dragElCt._ctLabel.style.top = (isB ? newTop + 3 : newTop - 4) + "%";
+        dragElCt._ctLabel.style.top = (isB ? newTop + 6 : newTop - 6) + "%";
     }
 
     if (!hasCablePosChanges) {
@@ -204,7 +204,7 @@ function onCableMouseUp() {
     dragElCt = null;
 }
 
-window.saveCablePositions = function() {
+window.saveCablePositions = function () {
     var btn = document.getElementById("btnSaveCablePositions");
     if (!btn) return;
     btn.disabled = true;
@@ -220,7 +220,7 @@ window.saveCablePositions = function() {
 
     var batch = [];
     var seen = {};
-    movedDots.forEach(function(dot) {
+    movedDots.forEach(function (dot) {
         var idx = parseInt(dot.dataset.index);
         var s = cablePositionsData[idx];
         if (!s || s.pos_x == null || s.pos_y == null || isNaN(s.pos_x) || isNaN(s.pos_y)) return;
@@ -236,25 +236,25 @@ window.saveCablePositions = function() {
         headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
         body: JSON.stringify(batch)
     })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Positions';
-        if (!data.ok) {
-            window.SHMToast.danger("Save failed: " + (data.error || "Unknown error"), "Error", 6000);
-        } else {
-            hasCablePosChanges = false;
-            btn.style.display = "none";
-            document.querySelectorAll(".ct-dot.moved").forEach(function(d) { d.classList.remove("moved"); });
-            window.SHMToast.success("Saved " + data.count + " position(s).", "Berhasil", 6000);
-        }
-    })
-    .catch(function(e) {
-        console.error("Save error:", e);
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Positions';
-        window.SHMToast.danger("Save failed: " + e.message, "Error", 6000);
-    });
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Positions';
+            if (!data.ok) {
+                window.SHMToast.danger("Save failed: " + (data.error || "Unknown error"), "Error", 6000);
+            } else {
+                hasCablePosChanges = false;
+                btn.style.display = "none";
+                document.querySelectorAll(".ct-dot.moved").forEach(function (d) { d.classList.remove("moved"); });
+                window.SHMToast.success("Saved " + data.count + " position(s).", "Berhasil", 6000);
+            }
+        })
+        .catch(function (e) {
+            console.error("Save error:", e);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Positions';
+            window.SHMToast.danger("Save failed: " + e.message, "Error", 6000);
+        });
 };
 
 async function loadTensionData() {
@@ -284,7 +284,7 @@ function getMetric(d, unit) {
 }
 
 function updateDeckColors(data) {
-    data.forEach(function(d) { updatePointColorFromData(d); });
+    data.forEach(function (d) { updatePointColorFromData(d); });
 }
 
 function updatePointColorFromData(d) {
@@ -429,10 +429,10 @@ function initBarChart() {
 function updateBarChart(data) {
     if (!tensionXAxis || !tensionSeriesA || !tensionSeriesB) return;
 
-    var chartData = CABLE_LOCATIONS.map(function(loc) {
+    var chartData = CABLE_LOCATIONS.map(function (loc) {
         var obj = { location: loc };
-        var sensorA = data.find(function(d) { return CABLE_MAPPING[d.sensor_id] === loc + "A"; });
-        var sensorB = data.find(function(d) { return CABLE_MAPPING[d.sensor_id] === loc + "B"; });
+        var sensorA = data.find(function (d) { return CABLE_MAPPING[d.sensor_id] === loc + "A"; });
+        var sensorB = data.find(function (d) { return CABLE_MAPPING[d.sensor_id] === loc + "B"; });
         if (sensorA) obj.valueA = getMetric(sensorA, currentUnit);
         if (sensorB) obj.valueB = getMetric(sensorB, currentUnit);
         return obj;
@@ -459,7 +459,7 @@ function updateBarChart(data) {
         var maxT = Math.max.apply(null, thresholds);
         tensionYAxis.set("max", maxT * 1.1);
 
-        thresholds.forEach(function(tv, idx) {
+        thresholds.forEach(function (tv, idx) {
             var rangeDataItem = tensionYAxis.makeDataItem({ value: tv });
             tensionYAxis.createAxisRange(rangeDataItem);
             rangeDataItem.get("grid").setAll({
@@ -488,11 +488,11 @@ function updateDataTable(data) {
     if (!tbody) return;
 
     var allSensors = CABLE_IDS_TOP.concat(CABLE_IDS_BOTTOM);
-    var rows = allSensors.map(function(sid) {
-        var sensor = data.find(function(d) { return d.sensor_id === sid; }) || {};
+    var rows = allSensors.map(function (sid) {
+        var sensor = data.find(function (d) { return d.sensor_id === sid; }) || {};
         return { sid: sid, tag: CABLE_MAPPING[sid] || sid };
-    }).map(function(r) {
-        var sensor = data.find(function(d) { return d.sensor_id === r.sid; }) || {};
+    }).map(function (r) {
+        var sensor = data.find(function (d) { return d.sensor_id === r.sid; }) || {};
         var avgVal = sensor.tension_avg || 0;
         var rowClass = "";
         if (avgVal >= TENSION_CRITICAL_KN) rowClass = 'style="background: rgba(239,68,68,0.08)"';
@@ -513,7 +513,7 @@ function updateDataTable(data) {
     tbody.innerHTML = rows.join("");
 }
 
-window.captureCableTensionRealtime = function() {
+window.captureCableTensionRealtime = function () {
     var target = document.getElementById("cableTensionRealtimeCard");
     if (!target) return;
 
@@ -527,7 +527,7 @@ window.captureCableTensionRealtime = function() {
         useCORS: true,
         scale: 2,
         backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--card-bg') || "#ffffff"
-    }).then(function(canvas) {
+    }).then(function (canvas) {
         var link = document.createElement("a");
         var date = new Date();
         var dd = String(date.getDate()).padStart(2, '0');
@@ -536,7 +536,7 @@ window.captureCableTensionRealtime = function() {
         link.download = 'Cable_Tension_Realtime_' + dd + mm + yyyy + '.png';
         link.href = canvas.toDataURL("image/png");
         link.click();
-    }).catch(function(err) {
+    }).catch(function (err) {
         console.error("Capture error:", err);
         if (window.SHMToast) window.SHMToast.danger('Gagal menangkap gambar', 'Cable Tension');
     });
