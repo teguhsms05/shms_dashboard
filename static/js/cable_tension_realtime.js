@@ -524,26 +524,28 @@ window.captureCableTensionRealtime = function () {
     }
 
     html2canvas(target, {
-        useCORS: true,
         scale: 2,
-        backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--card-bg') || "#ffffff",
-        allowTaint: false,
-        logging: false
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff"
     }).then(function (canvas) {
-        canvas.toBlob(function(blob) {
-            var url = URL.createObjectURL(blob);
+        try {
+            var dataUrl = canvas.toDataURL("image/png");
             var link = document.createElement("a");
             var date = new Date();
             var dd = String(date.getDate()).padStart(2, '0');
             var mm = String(date.getMonth() + 1).padStart(2, '0');
             var yyyy = date.getFullYear();
             link.download = 'Cable_Tension_Realtime_' + dd + mm + yyyy + '.png';
-            link.href = url;
+            link.href = dataUrl;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            setTimeout(function() { URL.revokeObjectURL(url); }, 100);
-        }, 'image/png');
+            if (window.SHMToast) window.SHMToast.success('Gambar berhasil diunduh', 'Capture', 4000);
+        } catch(e) {
+            console.error("Download error:", e);
+            if (window.SHMToast) window.SHMToast.danger('Gagal mengunduh gambar: ' + e.message, 'Capture');
+        }
     }).catch(function (err) {
         console.error("Capture error:", err);
         if (window.SHMToast) window.SHMToast.danger('Gagal menangkap gambar', 'Cable Tension');

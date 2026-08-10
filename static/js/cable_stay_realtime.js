@@ -376,14 +376,13 @@ window.captureCableRealtime = function () {
     }
 
     html2canvas(target, {
-        useCORS: true,
         scale: 2,
-        backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--card-bg') || "#ffffff",
-        allowTaint: false,
-        logging: false
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff"
     }).then(canvas => {
-        canvas.toBlob(blob => {
-            const url = URL.createObjectURL(blob);
+        try {
+            const dataUrl = canvas.toDataURL("image/png");
             const link = document.createElement("a");
             const date = new Date();
             const dd = String(date.getDate()).padStart(2, '0');
@@ -391,12 +390,15 @@ window.captureCableRealtime = function () {
             const yyyy = date.getFullYear();
             const dateStr = dd + mm + yyyy;
             link.download = `Cable_Monitor_Realtime_${dateStr}.png`;
-            link.href = url;
+            link.href = dataUrl;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            setTimeout(() => URL.revokeObjectURL(url), 100);
-        }, 'image/png');
+            if (window.SHMToast) window.SHMToast.success('Gambar berhasil diunduh', 'Capture', 4000);
+        } catch(e) {
+            console.error("Download error:", e);
+            if (window.SHMToast) window.SHMToast.danger('Gagal mengunduh gambar: ' + e.message, 'Capture');
+        }
     }).catch(err => {
         console.error("Capture captureCableRealtime error:", err);
         if (window.SHMToast) window.SHMToast.danger('Gagal menangkap gambar', 'Cable Monitor');
