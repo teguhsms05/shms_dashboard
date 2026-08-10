@@ -198,9 +198,7 @@
     white-space: nowrap;
     pointer-events: none;
     z-index: 3;
-    bottom: 18px;
-    left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -100%);
 }
 
 .ct-tooltip {

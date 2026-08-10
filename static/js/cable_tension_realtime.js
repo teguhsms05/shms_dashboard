@@ -129,7 +129,7 @@ function createCableDot(wrapper, pctX, pctY, tipX, tipY, label, sensorId, index)
     dotLabel.className = "ct-dot-label";
     dotLabel.textContent = label;
     dotLabel.style.left = pctX + "%";
-    dotLabel.style.top = pctY + "%";
+    dotLabel.style.top = (pctY - 3) + "%";
     dotLabel.dataset.sensorId = sensorId;
     dotLabel.dataset.index = index;
 
@@ -178,7 +178,7 @@ function onCableMouseMove(e) {
     dragElCt.style.top = newTop + "%";
     if (dragElCt._ctLabel) {
         dragElCt._ctLabel.style.left = newLeft + "%";
-        dragElCt._ctLabel.style.top = newTop + "%";
+        dragElCt._ctLabel.style.top = (newTop - 3) + "%";
     }
 
     if (!hasCablePosChanges) {
