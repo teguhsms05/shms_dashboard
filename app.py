@@ -21,6 +21,11 @@ app.secret_key = "shms-barelang-secret-2026"
 app.permanent_session_lifetime = timedelta(days=30)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
+@app.after_request
+def add_security_headers(response):
+    response.headers['Permissions-Policy'] = 'unload=()'
+    return response
+
 print(f"[{datetime.now()}] --- app.py MODULE LOADED ---")
 
 # ── Login-required decorator ──
