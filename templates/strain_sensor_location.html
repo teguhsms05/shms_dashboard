@@ -99,66 +99,64 @@
 
     .dot2-tooltip {
         position: absolute;
-        background: linear-gradient(135deg, rgba(59,130,246,0.95) 0%, rgba(37,99,235,0.95) 100%);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        color: #ffffff;
-        padding: 8px 14px;
-        border-radius: 12px;
-        border: 1px solid rgba(255,255,255,0.25);
-        box-shadow: 0 8px 32px rgba(59,130,246,0.3), 0 0 0 1px rgba(255,255,255,0.1) inset, 0 2px 4px rgba(0,0,0,0.1);
-        font-size: 0.78rem;
-        font-weight: 700;
+        background: rgba(15,23,42,0.92);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        color: #f1f5f9;
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(59,130,246,0.3);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+        font-size: 0.72rem;
+        font-weight: 600;
         white-space: nowrap;
         pointer-events: none;
         z-index: 25;
-        line-height: 1.3;
-        letter-spacing: 0.03em;
-        transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+        line-height: 1.25;
+        letter-spacing: 0.02em;
+        transition: opacity 0.15s;
     }
     .dot2-tooltip::after {
         content: '';
         position: absolute;
-        width: 10px;
-        height: 10px;
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        border-right: 1px solid rgba(255,255,255,0.3);
-        border-bottom: 1px solid rgba(255,255,255,0.3);
-        border-radius: 0 0 3px 0;
+        width: 7px;
+        height: 7px;
+        background: rgba(15,23,42,0.92);
+        border-right: 1px solid rgba(59,130,246,0.3);
+        border-bottom: 1px solid rgba(59,130,246,0.3);
     }
-    .dot2-tooltip.top::after        { bottom: -5px; left: 50%; transform: translateX(-50%) rotate(45deg); }
-    .dot2-tooltip.bottom::after     { top: -5px;    left: 50%; transform: translateX(-50%) rotate(45deg); }
-    .dot2-tooltip.left::after       { right: -5px;  top: 50%;  transform: translateY(-50%) rotate(45deg); }
-    .dot2-tooltip.right::after      { left: -5px;   top: 50%;  transform: translateY(-50%) rotate(45deg); }
-    .dot2-tooltip.top-left::after   { bottom: -5px; right: 14px; transform: rotate(45deg); }
-    .dot2-tooltip.top-right::after  { bottom: -5px; left: 14px;  transform: rotate(45deg); }
-    .dot2-tooltip.bot-left::after   { top: -5px;    right: 14px; transform: rotate(45deg); }
-    .dot2-tooltip.bot-right::after  { top: -5px;    left: 14px;  transform: rotate(45deg); }
+    .dot2-tooltip.top::after        { bottom: -3px; left: 50%; transform: translateX(-50%) rotate(45deg); }
+    .dot2-tooltip.bottom::after     { top: -3px;    left: 50%; transform: translateX(-50%) rotate(45deg); }
+    .dot2-tooltip.left::after       { right: -3px;  top: 50%;  transform: translateY(-50%) rotate(45deg); }
+    .dot2-tooltip.right::after      { left: -3px;   top: 50%;  transform: translateY(-50%) rotate(45deg); }
+    .dot2-tooltip.top-right::after  { bottom: -3px; left: 10px;  transform: rotate(45deg); }
+    .dot2-tooltip.top-left::after   { bottom: -3px; right: 10px; transform: rotate(45deg); }
+    .dot2-tooltip.bot-right::after  { top: -3px;    left: 10px;  transform: rotate(45deg); }
+    .dot2-tooltip.bot-left::after   { top: -3px;    right: 10px; transform: rotate(45deg); }
     .dot2-tooltip .tooltip-val {
         display: block;
-        font-weight: 600;
-        font-size: 0.7rem;
-        color: rgba(255,255,255,0.9);
+        font-weight: 700;
+        font-size: 0.75rem;
+        color: #3b82f6;
         margin-top: 2px;
-        opacity: 0.9;
     }
     .dot2-tooltip .tooltip-time {
         display: block;
         font-weight: 400;
-        font-size: 0.6rem;
-        color: rgba(255,255,255,0.7);
-        margin-top: 3px;
+        font-size: 0.58rem;
+        color: rgba(148,163,184,0.9);
+        margin-top: 2px;
         letter-spacing: 0.02em;
     }
 
-    .dot2-tooltip.top        { transform: translate(-50%, -120%); margin-top: -14px; }
-    .dot2-tooltip.bottom     { transform: translate(-50%, 20%);    margin-top: 16px;  }
-    .dot2-tooltip.left       { transform: translate(-120%, -50%); margin-left: -14px; }
-    .dot2-tooltip.right      { transform: translate(20%, -50%);    margin-left: 16px;  }
-    .dot2-tooltip.top-left   { transform: translate(-120%, -120%); margin: -10px 0 0 -10px; }
-    .dot2-tooltip.top-right  { transform: translate(20%, -120%);   margin: -10px 0 0 10px;  }
-    .dot2-tooltip.bot-left   { transform: translate(-120%, 20%);   margin: 10px 0 0 -10px;  }
-    .dot2-tooltip.bot-right  { transform: translate(20%, 20%);     margin: 10px 0 0 10px;   }
+    .dot2-tooltip.top        { transform: translate(-50%, -110%); margin-top: -10px; }
+    .dot2-tooltip.bottom     { transform: translate(-50%, 10%);    margin-top: 12px;  }
+    .dot2-tooltip.left       { transform: translate(-110%, -50%); margin-left: -10px; }
+    .dot2-tooltip.right      { transform: translate(10%, -50%);    margin-left: 12px;  }
+    .dot2-tooltip.top-left   { transform: translate(-110%, -110%); margin: -8px 0 0 -8px; }
+    .dot2-tooltip.top-right  { transform: translate(10%, -110%);   margin: -8px 0 0 8px;  }
+    .dot2-tooltip.bot-left   { transform: translate(-110%, 10%);   margin: 8px 0 0 -8px;  }
+    .dot2-tooltip.bot-right  { transform: translate(10%, 10%);     margin: 8px 0 0 8px;   }
 
     .connector-line {
         position: absolute;
@@ -246,8 +244,8 @@
             var px = s.pos_x != null ? s.pos_x : 10 + i * 10;
             var py = s.pos_y != null ? s.pos_y : 40;
             var labelText = s.sensor_id || s.sensor_code || '';
-            var value = s.sensor_id || null;
-            var updateTime = s.updated_at ? s.updated_at.replace('T', ' ').substring(0, 19) : null;
+            var value = s.strain_ue != null ? s.strain_ue.toFixed(2) + ' \u03BC\u03B5' : null;
+            var updateTime = s.last_time ? s.last_time.replace('T', ' ').substring(0, 19) : null;
             createDot(wrapper, px, py, labelText, value, updateTime, i);
         }
         setTimeout(drawConnectors, 50);
@@ -270,7 +268,7 @@
         tip.style.left = pctX + '%';
         tip.style.top = pctY + '%';
         var html = '<span style="font-size:0.85rem;letter-spacing:0.04em;font-weight:700;">' + label + '</span>';
-        html += '<span class="tooltip-val">Last: -- με</span>';
+        if (value) html += '<span class="tooltip-val">' + value + '</span>';
         if (updateTime) html += '<span class="tooltip-time">' + updateTime + '</span>';
         tip.innerHTML = html;
         tip.dataset.index = index;

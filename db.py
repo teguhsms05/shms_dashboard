@@ -1894,9 +1894,17 @@ def get_strain_sensor_locations():
                 SELECT si.sensor_id, si.sensor_code,
                     COALESCE(sp.pos_x, NULL) AS pos_x,
                     COALESCE(sp.pos_y, NULL) AS pos_y,
-                    sp.updated_at
+                    sp.updated_at,
+                    st.strain_ue, st.temp_c, st.time AS last_time
                 FROM sensor_info si
                 LEFT JOIN public.sensor_position sp ON sp.sensor_id = si.sensor_id
+                LEFT JOIN LATERAL (
+                    SELECT strain_ue, temp_c, time
+                    FROM dsi.strain
+                    WHERE sensor_id = si.sensor_id
+                    ORDER BY time DESC
+                    LIMIT 1
+                ) st ON true
                 WHERE si.sensor_type = 'Strain' AND si.sensor_id IS NOT NULL
                 ORDER BY si.sensor_id ASC
             """)

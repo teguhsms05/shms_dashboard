@@ -1907,6 +1907,8 @@ def api_strain_sensor_locations():
     for r in rows:
         if r.get("updated_at") and hasattr(r["updated_at"], "isoformat"):
             r["updated_at"] = r["updated_at"].isoformat()
+        if r.get("last_time") and hasattr(r["last_time"], "isoformat"):
+            r["last_time"] = r["last_time"].isoformat()
     return jsonify(rows)
 
 @app.route("/api/strain/sensor-locations", methods=["POST"])
