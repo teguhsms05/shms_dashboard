@@ -100,7 +100,7 @@ function renderCableDots(positions) {
 
     positions.forEach((p, i) => {
         const tag = CABLE_MAPPING[p.sensor_id] || p.sensor_id;
-        const label = tag.split("-")[1] || p.sensor_id;
+        const label = tag;
         createCableDot(wrapper, p.pos_x, p.pos_y, p.tip_x, p.tip_y, label, p.sensor_id, i);
     });
 }
