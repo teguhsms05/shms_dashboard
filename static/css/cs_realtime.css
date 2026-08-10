@@ -230,12 +230,3 @@
     color: #94a3b8;
     font-weight: 400;
 }
-
-.ct-tooltip.top { transform: translate(-50%, -120%); }
-.ct-tooltip.bottom { transform: translate(-50%, 20%); }
-.ct-tooltip.left { transform: translate(-120%, -50%); }
-.ct-tooltip.right { transform: translate(20%, -50%); }
-.ct-tooltip.top-right { transform: translate(20%, -120%); }
-.ct-tooltip.top-left { transform: translate(-120%, -120%); }
-.ct-tooltip.bot-right { transform: translate(20%, 20%); }
-.ct-tooltip.bot-left { transform: translate(-120%, 20%); }

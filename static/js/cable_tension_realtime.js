@@ -126,13 +126,14 @@ function createCableDot(wrapper, pctX, pctY, tipX, tipY, label, sensorId, index)
     });
 
     var tip = document.createElement("div");
-    tip.className = "ct-tooltip " + dir;
+    tip.className = "ct-tooltip";
     if (IS_ADMIN_CT) {
         tip.classList.add("draggable");
         tip.dataset.type = "tip";
     }
     tip.style.left = (tipX != null ? tipX : pctX) + "%";
     tip.style.top = (tipY != null ? tipY : pctY) + "%";
+    tip.style.transform = "translate(-50%, -50%)";
     tip.style.pointerEvents = IS_ADMIN_CT ? "auto" : "none";
     tip.innerHTML = label + '<span class="tooltip-val">-- kN</span>';
     tip.dataset.sensorId = sensorId;

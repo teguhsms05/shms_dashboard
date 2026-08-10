@@ -159,46 +159,6 @@
         letter-spacing: 0.02em;
     }
 
-    .dot2-tooltip.top {
-        transform: translate(-50%, -110%);
-        margin-top: -10px;
-    }
-
-    .dot2-tooltip.bottom {
-        transform: translate(-50%, 10%);
-        margin-top: 12px;
-    }
-
-    .dot2-tooltip.left {
-        transform: translate(-110%, -50%);
-        margin-left: -10px;
-    }
-
-    .dot2-tooltip.right {
-        transform: translate(10%, -50%);
-        margin-left: 12px;
-    }
-
-    .dot2-tooltip.top-left {
-        transform: translate(-110%, -110%);
-        margin: -8px 0 0 -8px;
-    }
-
-    .dot2-tooltip.top-right {
-        transform: translate(10%, -110%);
-        margin: -8px 0 0 8px;
-    }
-
-    .dot2-tooltip.bot-left {
-        transform: translate(-110%, 10%);
-        margin: 8px 0 0 -8px;
-    }
-
-    .dot2-tooltip.bot-right {
-        transform: translate(10%, 10%);
-        margin: 8px 0 0 8px;
-    }
-
     .connector-line {
         position: absolute;
         top: 0;
@@ -314,13 +274,14 @@
         if (IS_ADMIN) dot.addEventListener('mousedown', onDotMouseDown);
 
         var tip = document.createElement('div');
-        tip.className = 'dot2-tooltip ' + dir;
-        tip.style.left = (tipX != null ? tipX : pctX) + '%';
-        tip.style.top = (tipY != null ? tipY : pctY) + '%';
+        tip.className = 'dot2-tooltip';
         if (IS_ADMIN) {
             tip.classList.add('draggable');
             tip.dataset.type = 'tip';
         }
+        tip.style.left = (tipX != null ? tipX : pctX) + '%';
+        tip.style.top = (tipY != null ? tipY : pctY) + '%';
+        tip.style.transform = 'translate(-50%, -50%)';
         tip.style.pointerEvents = IS_ADMIN ? 'auto' : 'none';
         var html = '<span style="font-size:0.85rem;letter-spacing:0.04em;font-weight:700;">' + label + '</span>';
         if (value) html += '<span class="tooltip-val">' + value + '</span>';
