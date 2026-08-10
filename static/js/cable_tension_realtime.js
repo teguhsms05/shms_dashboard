@@ -519,27 +519,32 @@ window.captureCableTensionRealtime = function () {
 
     if (typeof html2canvas === 'undefined') {
         console.error("html2canvas is not loaded");
-        if (window.SHMToast) window.SHMToast.danger('Gagal menangkap gambar: Library tidak ditemukan', 'Cable Tension');
         return;
     }
 
-    html2canvas(target, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#ffffff",
-        onclone: function(clonedDoc) {
-            clonedDoc.querySelectorAll('canvas, .amcharts-layer, svg').forEach(function(el) {
-                el.style.display = 'none';
-            });
+    html2canvas(target, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff" })
+    .then(function (canvas) {
+        var preview = document.getElementById("capturePreview");
+        if (!preview) {
+            preview = document.createElement("div");
+            preview.id = "capturePreview";
+            preview.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;cursor:pointer;";
+            preview.onclick = function(e) { if (e.target === preview) preview.remove(); };
+            document.body.appendChild(preview);
         }
-    }).then(function (canvas) {
-        var win = window.open('', '_blank');
-        win.document.write('<img src="' + canvas.toDataURL("image/png") + '" style="max-width:100%"/>');
-        win.document.title = 'Cable Tension Screenshot';
-        if (window.SHMToast) window.SHMToast.success('Gambar dibuka di tab baru', 'Capture', 4000);
-    }).catch(function (err) {
-        console.error("Capture error:", err);
-        if (window.SHMToast) window.SHMToast.danger('Gagal menangkap gambar: ' + err.message, 'Cable Tension');
+        preview.innerHTML = "";
+        canvas.style.maxWidth = "95%";
+        canvas.style.maxHeight = "90%";
+        canvas.style.cursor = "default";
+        canvas.onclick = function(e) { e.stopPropagation(); };
+        preview.appendChild(canvas);
+        var closeBtn = document.createElement("button");
+        closeBtn.textContent = "✕ Tutup";
+        closeBtn.style.cssText = "margin-top:16px;padding:10px 28px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;";
+        closeBtn.onclick = function() { preview.remove(); };
+        preview.appendChild(closeBtn);
+    })
+    .catch(function (err) {
+        console.error("html2canvas error:", err);
     });
 };

@@ -371,36 +371,32 @@ window.captureCableRealtime = function () {
 
     if (typeof html2canvas === 'undefined') {
         console.error("html2canvas is not loaded");
-        if (window.SHMToast) window.SHMToast.danger('Gagal menangkap gambar: Library tidak ditemukan', 'Cable Monitor');
         return;
     }
 
-    html2canvas(target, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#ffffff"
-    }).then(canvas => {
-        try {
-            const dataUrl = canvas.toDataURL("image/png");
-            const link = document.createElement("a");
-            const date = new Date();
-            const dd = String(date.getDate()).padStart(2, '0');
-            const mm = String(date.getMonth() + 1).padStart(2, '0');
-            const yyyy = date.getFullYear();
-            const dateStr = dd + mm + yyyy;
-            link.download = `Cable_Monitor_Realtime_${dateStr}.png`;
-            link.href = dataUrl;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            if (window.SHMToast) window.SHMToast.success('Gambar berhasil diunduh', 'Capture', 4000);
-        } catch(e) {
-            console.error("Download error:", e);
-            if (window.SHMToast) window.SHMToast.danger('Gagal mengunduh gambar: ' + e.message, 'Capture');
+    html2canvas(target, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff" })
+    .then(canvas => {
+        let preview = document.getElementById("capturePreview");
+        if (!preview) {
+            preview = document.createElement("div");
+            preview.id = "capturePreview";
+            preview.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;cursor:pointer;";
+            preview.onclick = e => { if (e.target === preview) preview.remove(); };
+            document.body.appendChild(preview);
         }
-    }).catch(err => {
-        console.error("Capture captureCableRealtime error:", err);
-        if (window.SHMToast) window.SHMToast.danger('Gagal menangkap gambar', 'Cable Monitor');
+        preview.innerHTML = "";
+        canvas.style.maxWidth = "95%";
+        canvas.style.maxHeight = "90%";
+        canvas.style.cursor = "default";
+        canvas.onclick = e => e.stopPropagation();
+        preview.appendChild(canvas);
+        const closeBtn = document.createElement("button");
+        closeBtn.textContent = "✕ Tutup";
+        closeBtn.style.cssText = "margin-top:16px;padding:10px 28px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;";
+        closeBtn.onclick = () => preview.remove();
+        preview.appendChild(closeBtn);
+    })
+    .catch(err => {
+        console.error("html2canvas error:", err);
     });
 };
