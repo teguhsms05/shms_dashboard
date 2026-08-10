@@ -378,17 +378,25 @@ window.captureCableRealtime = function () {
     html2canvas(target, {
         useCORS: true,
         scale: 2,
-        backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--card-bg') || "#ffffff"
+        backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--card-bg') || "#ffffff",
+        allowTaint: false,
+        logging: false
     }).then(canvas => {
-        const link = document.createElement("a");
-        const date = new Date();
-        const dd = String(date.getDate()).padStart(2, '0');
-        const mm = String(date.getMonth() + 1).padStart(2, '0');
-        const yyyy = date.getFullYear();
-        const dateStr = dd + mm + yyyy;
-        link.download = `Cable_Monitor_Realtime_${dateStr}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
+        canvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            const date = new Date();
+            const dd = String(date.getDate()).padStart(2, '0');
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const yyyy = date.getFullYear();
+            const dateStr = dd + mm + yyyy;
+            link.download = `Cable_Monitor_Realtime_${dateStr}.png`;
+            link.href = url;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+        }, 'image/png');
     }).catch(err => {
         console.error("Capture captureCableRealtime error:", err);
         if (window.SHMToast) window.SHMToast.danger('Gagal menangkap gambar', 'Cable Monitor');

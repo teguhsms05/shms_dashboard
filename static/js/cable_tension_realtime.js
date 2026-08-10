@@ -526,16 +526,24 @@ window.captureCableTensionRealtime = function () {
     html2canvas(target, {
         useCORS: true,
         scale: 2,
-        backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--card-bg') || "#ffffff"
+        backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--card-bg') || "#ffffff",
+        allowTaint: false,
+        logging: false
     }).then(function (canvas) {
-        var link = document.createElement("a");
-        var date = new Date();
-        var dd = String(date.getDate()).padStart(2, '0');
-        var mm = String(date.getMonth() + 1).padStart(2, '0');
-        var yyyy = date.getFullYear();
-        link.download = 'Cable_Tension_Realtime_' + dd + mm + yyyy + '.png';
-        link.href = canvas.toDataURL("image/png");
-        link.click();
+        canvas.toBlob(function(blob) {
+            var url = URL.createObjectURL(blob);
+            var link = document.createElement("a");
+            var date = new Date();
+            var dd = String(date.getDate()).padStart(2, '0');
+            var mm = String(date.getMonth() + 1).padStart(2, '0');
+            var yyyy = date.getFullYear();
+            link.download = 'Cable_Tension_Realtime_' + dd + mm + yyyy + '.png';
+            link.href = url;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(function() { URL.revokeObjectURL(url); }, 100);
+        }, 'image/png');
     }).catch(function (err) {
         console.error("Capture error:", err);
         if (window.SHMToast) window.SHMToast.danger('Gagal menangkap gambar', 'Cable Tension');
