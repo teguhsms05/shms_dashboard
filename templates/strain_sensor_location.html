@@ -116,23 +116,6 @@
         letter-spacing: 0.02em;
         transition: opacity 0.15s;
     }
-    .dot2-tooltip::after {
-        content: '';
-        position: absolute;
-        width: 7px;
-        height: 7px;
-        background: rgba(15,23,42,0.92);
-        border-right: 1px solid rgba(59,130,246,0.3);
-        border-bottom: 1px solid rgba(59,130,246,0.3);
-    }
-    .dot2-tooltip.top::after        { bottom: -3px; left: 50%; transform: translateX(-50%) rotate(45deg); }
-    .dot2-tooltip.bottom::after     { top: -3px;    left: 50%; transform: translateX(-50%) rotate(45deg); }
-    .dot2-tooltip.left::after       { right: -3px;  top: 50%;  transform: translateY(-50%) rotate(45deg); }
-    .dot2-tooltip.right::after      { left: -3px;   top: 50%;  transform: translateY(-50%) rotate(45deg); }
-    .dot2-tooltip.top-right::after  { bottom: -3px; left: 10px;  transform: rotate(45deg); }
-    .dot2-tooltip.top-left::after   { bottom: -3px; right: 10px; transform: rotate(45deg); }
-    .dot2-tooltip.bot-right::after  { top: -3px;    left: 10px;  transform: rotate(45deg); }
-    .dot2-tooltip.bot-left::after   { top: -3px;    right: 10px; transform: rotate(45deg); }
     .dot2-tooltip .tooltip-val {
         display: block;
         font-weight: 700;
