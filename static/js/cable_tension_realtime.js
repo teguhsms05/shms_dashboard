@@ -46,7 +46,6 @@ let cablePositionsData = [];
 let hasCablePosChanges = false;
 
 document.addEventListener("DOMContentLoaded", () => {
-    initDeckSideDots();
     loadCablePositions();
     initAllCharts();
     loadTensionData();
@@ -76,43 +75,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.addEventListener('resize', () => { setTimeout(drawCableConnectors, 100); });
 });
-
-function initDeckSideDots() {
-    const topSide = document.getElementById("top-cables");
-    const bottomSide = document.getElementById("bottom-cables");
-    if (!topSide || !bottomSide) return;
-
-    topSide.innerHTML = "";
-    bottomSide.innerHTML = "";
-
-    CABLE_IDS_TOP.forEach(sid => {
-        topSide.appendChild(createSideCablePoint(sid));
-    });
-
-    CABLE_IDS_BOTTOM.forEach(sid => {
-        bottomSide.appendChild(createSideCablePoint(sid));
-    });
-}
-
-function createSideCablePoint(sid) {
-    const div = document.createElement("div");
-    div.className = "cable-point";
-    div.id = "tension-point-" + sid;
-
-    const fullTag = CABLE_MAPPING[sid] || sid;
-    div.title = fullTag;
-
-    const label = document.createElement("div");
-    label.className = "cable-label";
-    label.textContent = (fullTag.split('-')[1] || fullTag);
-    div.appendChild(label);
-
-    div.addEventListener("click", () => {
-        window.location.href = "/cable-tension/sensor/" + sid;
-    });
-
-    return div;
-}
 
 async function loadCablePositions() {
     try {
@@ -426,7 +388,6 @@ function updateDeckColors(data) {
 }
 
 function updatePointColorFromData(d) {
-    var el = document.getElementById("tension-point-" + d.sensor_id);
     var dot = document.querySelector('.ct-dot[data-sensor-id="' + d.sensor_id + '"]');
 
     var val = d.tension_avg || 0;
@@ -441,8 +402,6 @@ function updatePointColorFromData(d) {
         color = "#94a3b8";
     }
 
-    if (el) el.style.backgroundColor = color;
-    if (el) el.style.border = "2px solid " + color;
     if (dot && !dot.classList.contains("moved") && !dot.classList.contains("dragging")) {
         dot.style.background = color;
     }
