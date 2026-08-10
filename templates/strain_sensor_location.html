@@ -112,11 +112,11 @@
         backdrop-filter: blur(14px);
         -webkit-backdrop-filter: blur(14px);
         color: #f1f5f9;
-        padding: 6px 10px;
-        border-radius: 8px;
+        padding: clamp(3px, 0.5vw, 8px) clamp(5px, 1vw, 14px);
+        border-radius: clamp(4px, 0.6vw, 10px);
         border: 1px solid rgba(2, 132, 199, 0.3);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-        font-size: 0.72rem;
+        box-shadow: 0 clamp(3px, 0.5vw, 8px) clamp(10px, 1.5vw, 24px) rgba(0, 0, 0, 0.35);
+        font-size: clamp(0.55rem, 0.8vw, 0.8rem);
         font-weight: 600;
         white-space: nowrap;
         pointer-events: none;
@@ -124,6 +124,23 @@
         line-height: 1.25;
         letter-spacing: 0.02em;
         transition: opacity 0.15s;
+    }
+
+    .dot2-tooltip .tooltip-val {
+        display: block;
+        font-weight: 700;
+        font-size: clamp(0.58rem, 0.85vw, 0.82rem);
+        color: #38bdf8;
+        margin-top: clamp(1px, 0.15vw, 3px);
+    }
+
+    .dot2-tooltip .tooltip-time {
+        display: block;
+        font-weight: 400;
+        font-size: clamp(0.45rem, 0.65vw, 0.65rem);
+        color: rgba(148, 163, 184, 0.9);
+        margin-top: clamp(1px, 0.15vw, 3px);
+        letter-spacing: 0.02em;
     }
 
     .dot2-tooltip.draggable {
@@ -140,23 +157,6 @@
 
     .dot2-tooltip.moved {
         border-color: rgba(245, 158, 11, 0.5);
-    }
-
-    .dot2-tooltip .tooltip-val {
-        display: block;
-        font-weight: 700;
-        font-size: 0.75rem;
-        color: #38bdf8;
-        margin-top: 2px;
-    }
-
-    .dot2-tooltip .tooltip-time {
-        display: block;
-        font-weight: 400;
-        font-size: 0.58rem;
-        color: rgba(148, 163, 184, 0.9);
-        margin-top: 2px;
-        letter-spacing: 0.02em;
     }
 
     .connector-line {

@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/cs_realtime.css') }}">
 <div class="page-header">
     <div class="page-header-row">
-        <h2 class="page-title">Cable Tension Monitor (FFT)</h2>
+        <h2 class="page-title">Cable Tension – <span style="color: var(--primary);">Monitoring</span></h2>
     </div>
 </div>
 
@@ -28,7 +28,8 @@
                     </button>
                 </div>
                 {% if is_admin %}
-                <button id="btnSaveCablePositions" onclick="saveCablePositions()" style="display:none; align-items:center; gap:6px; padding:8px 14px; border-radius:6px; font-size:0.85rem; font-weight:600; border:none; cursor:pointer; background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0;">
+                <button id="btnSaveCablePositions" onclick="saveCablePositions()"
+                    style="display:none; align-items:center; gap:6px; padding:8px 14px; border-radius:6px; font-size:0.85rem; font-weight:600; border:none; cursor:pointer; background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0;">
                     <i class="fa-solid fa-floppy-disk"></i> Save Positions
                 </button>
                 {% endif %}
@@ -85,10 +86,8 @@
     </div>
 </div>
 
-<div id="ct-realtime-data"
-     data-tension-warn-kn="{{ tension_warn_kn }}"
-     data-tension-critical-kn="{{ tension_critical_kn }}"
-     data-is-admin="{{ 'true' if is_admin else 'false' }}"></div>
+<div id="ct-realtime-data" data-tension-warn-kn="{{ tension_warn_kn }}"
+    data-tension-critical-kn="{{ tension_critical_kn }}" data-is-admin="{{ 'true' if is_admin else 'false' }}"></div>
 <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
 <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
 <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
