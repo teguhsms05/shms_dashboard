@@ -292,7 +292,7 @@ window.saveCablePositions = function() {
     if (movedDots.length === 0) {
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Positions';
-        alert("No positions changed.");
+        window.SHMToast.info('No positions changed.', 'Info', 3000);
         return;
     }
 
@@ -319,19 +319,19 @@ window.saveCablePositions = function() {
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Positions';
         if (!data.ok) {
-            alert("Save failed: " + (data.error || "Unknown error"));
+            window.SHMToast.danger("Save failed: " + (data.error || "Unknown error"), "Error", 6000);
         } else {
             hasCablePosChanges = false;
             btn.style.display = "none";
             document.querySelectorAll(".ct-dot.moved").forEach(function(d) { d.classList.remove("moved"); });
-            alert("Saved " + data.count + " position(s).");
+            window.SHMToast.success("Saved " + data.count + " position(s).", "Berhasil", 6000);
         }
     })
     .catch(function(e) {
         console.error("Save error:", e);
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Positions';
-        alert("Save failed: " + e.message);
+        window.SHMToast.danger("Save failed: " + e.message, "Error", 6000);
     });
 };
 
