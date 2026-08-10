@@ -1876,14 +1876,12 @@ def save_sensor_position(data):
 def batch_save_sensor_positions(data_list):
     try:
         with conn.cursor() as cur:
-            for d in data_list:
-                cur.execute("""
-                    INSERT INTO sensor_positions (sensor_id, sensor_type, x, y, label)
-                    VALUES (%s, %s, %s, %s, %s)
-                    ON CONFLICT (sensor_id, sensor_type) DO UPDATE
-                    SET x = EXCLUDED.x, y = EXCLUDED.y, label = EXCLUDED.label
-                """, (d["sensor_id"], d.get("sensor_type", "cable_tension"),
-                      d["x"], d["y"], d.get("label", "")))
+            cur.executemany("""
+                INSERT INTO sensor_positions (sensor_id, sensor_type, x, y, label)
+                VALUES (%(sensor_id)s, %(sensor_type)s, %(x)s, %(y)s, %(label)s)
+                ON CONFLICT (sensor_id, sensor_type) DO UPDATE
+                SET x = EXCLUDED.x, y = EXCLUDED.y, label = EXCLUDED.label
+            """, data_list)
             return True, None
     except Exception as e:
         print("DB ERROR batch_save_sensor_positions:", e)
@@ -1929,13 +1927,12 @@ def save_strain_sensor_position(sensor_id, pos_x, pos_y):
 def batch_save_strain_sensor_positions(data_list):
     try:
         with conn.cursor() as cur:
-            for d in data_list:
-                cur.execute("""
-                    INSERT INTO public.sensor_position (sensor_id, pos_x, pos_y)
-                    VALUES (%s, %s, %s)
-                    ON CONFLICT (sensor_id) DO UPDATE
-                    SET pos_x = EXCLUDED.pos_x, pos_y = EXCLUDED.pos_y
-                """, (d["sensor_id"], d["pos_x"], d["pos_y"]))
+            cur.executemany("""
+                INSERT INTO public.sensor_position (sensor_id, pos_x, pos_y)
+                VALUES (%(sensor_id)s, %(pos_x)s, %(pos_y)s)
+                ON CONFLICT (sensor_id) DO UPDATE
+                SET pos_x = EXCLUDED.pos_x, pos_y = EXCLUDED.pos_y
+            """, data_list)
             return True, None
     except Exception as e:
         print("DB ERROR batch_save_strain_sensor_positions:", e)

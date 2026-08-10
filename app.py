@@ -1768,7 +1768,7 @@ def api_batch_save_cable_tension_positions():
     data = request.get_json() or []
     if not isinstance(data, list):
         return jsonify({"ok": False, "error": "Expected array"}), 400
-    converted = [{"sensor_id": d["sensor_id"], "x": d["pos_x"], "y": d["pos_y"]} for d in data]
+    converted = [{"sensor_id": d["sensor_id"], "sensor_type": "cable_tension", "x": d["pos_x"], "y": d["pos_y"], "label": d.get("label", "")} for d in data]
     ok, err = batch_save_sensor_positions(converted)
     return jsonify({"ok": ok, "error": err, "count": len(data)})
 
