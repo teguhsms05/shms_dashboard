@@ -213,8 +213,8 @@ function drawCableConnectors() {
         var ey = ty - Math.sin(angle) * tipR;
 
         html += '<line x1="' + dx + '" y1="' + dy + '" x2="' + ex + '" y2="' + ey +
-            '" stroke="rgba(148,163,184,0.35)" stroke-width="1" stroke-dasharray="3,2" />';
-        html += '<circle cx="' + dx + '" cy="' + dy + '" r="2.5" fill="#3b82f6" opacity="0.6" />';
+            '" stroke="rgba(59,130,246,0.5)" stroke-width="1.5" stroke-dasharray="4,3" />';
+        html += '<circle cx="' + dx + '" cy="' + dy + '" r="3" fill="#3b82f6" opacity="0.8" />';
     });
     svg.innerHTML = html;
 }
