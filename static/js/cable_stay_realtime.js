@@ -376,6 +376,15 @@ window.captureCableRealtime = function () {
 
     html2canvas(target, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff" })
     .then(canvas => {
+        const dataUrl = canvas.toDataURL("image/png");
+
+        const link = document.createElement("a");
+        link.download = "cable_stay.png";
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
         let preview = document.getElementById("capturePreview");
         if (!preview) {
             preview = document.createElement("div");
@@ -390,11 +399,19 @@ window.captureCableRealtime = function () {
         canvas.style.cursor = "default";
         canvas.onclick = e => e.stopPropagation();
         preview.appendChild(canvas);
+        const bar = document.createElement("div");
+        bar.style.cssText = "display:flex;gap:12px;margin-top:16px;";
+        const dlBtn = document.createElement("button");
+        dlBtn.textContent = "Download cable_stay.png";
+        dlBtn.style.cssText = "padding:10px 24px;background:#22c55e;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;";
+        dlBtn.onclick = e => { e.stopPropagation(); link.click(); };
+        bar.appendChild(dlBtn);
         const closeBtn = document.createElement("button");
-        closeBtn.textContent = "✕ Tutup";
-        closeBtn.style.cssText = "margin-top:16px;padding:10px 28px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;";
-        closeBtn.onclick = () => preview.remove();
-        preview.appendChild(closeBtn);
+        closeBtn.textContent = "Tutup";
+        closeBtn.style.cssText = "padding:10px 24px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;";
+        closeBtn.onclick = e => { e.stopPropagation(); preview.remove(); };
+        bar.appendChild(closeBtn);
+        preview.appendChild(bar);
     })
     .catch(err => {
         console.error("html2canvas error:", err);
