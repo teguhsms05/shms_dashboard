@@ -245,9 +245,9 @@
             var s = sensors[i];
             var px = s.pos_x != null ? s.pos_x : 10 + i * 10;
             var py = s.pos_y != null ? s.pos_y : 40;
-            var labelText = (s.sensor_code || s.sensor_id || '').replace('STRAIN_', '').replace('STRAIN', '');
+            var labelText = s.sensor_id || s.sensor_code || '';
             var value = s.sensor_id || null;
-            var updateTime = s.updated_at || null;
+            var updateTime = s.updated_at ? s.updated_at.replace('T', ' ').substring(0, 19) : null;
             createDot(wrapper, px, py, labelText, value, updateTime, i);
         }
         setTimeout(drawConnectors, 50);
@@ -269,8 +269,8 @@
         tip.className = 'dot2-tooltip ' + dir;
         tip.style.left = pctX + '%';
         tip.style.top = pctY + '%';
-        var html = '<span style="font-size:0.85rem;letter-spacing:0.04em;">' + label + '</span>';
-        html += '<span class="tooltip-val">' + (value || '') + '</span>';
+        var html = '<span style="font-size:0.85rem;letter-spacing:0.04em;font-weight:700;">' + label + '</span>';
+        html += '<span class="tooltip-val">Last: -- με</span>';
         if (updateTime) html += '<span class="tooltip-time">' + updateTime + '</span>';
         tip.innerHTML = html;
         tip.dataset.index = index;
