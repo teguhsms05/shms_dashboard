@@ -531,6 +531,9 @@ window.captureCableTensionRealtime = function () {
     }).then(function (canvas) {
         try {
             var dataUrl = canvas.toDataURL("image/png");
+            if (!dataUrl || dataUrl === "data:,") {
+                throw new Error("Canvas kosong");
+            }
             var link = document.createElement("a");
             var date = new Date();
             var dd = String(date.getDate()).padStart(2, '0');
@@ -538,16 +541,17 @@ window.captureCableTensionRealtime = function () {
             var yyyy = date.getFullYear();
             link.download = 'Cable_Tension_Realtime_' + dd + mm + yyyy + '.png';
             link.href = dataUrl;
+            link.style.display = 'none';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             if (window.SHMToast) window.SHMToast.success('Gambar berhasil diunduh', 'Capture', 4000);
         } catch(e) {
             console.error("Download error:", e);
-            if (window.SHMToast) window.SHMToast.danger('Gagal mengunduh gambar: ' + e.message, 'Capture');
+            if (window.SHMToast) window.SHMToast.danger('Gagal mengunduh: ' + e.message, 'Capture');
         }
     }).catch(function (err) {
         console.error("Capture error:", err);
-        if (window.SHMToast) window.SHMToast.danger('Gagal menangkap gambar', 'Cable Tension');
+        if (window.SHMToast) window.SHMToast.danger('Gagal menangkap gambar: ' + err.message, 'Cable Tension');
     });
 };
