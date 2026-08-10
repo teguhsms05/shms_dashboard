@@ -5,7 +5,8 @@
 <div class="dashboard-header-row">
     <div class="header-titles">
         <h2 class="main-title">Sensor Location - Girder</h2>
-        <p class="sub-title">Strain sensor locations on the bridge girder.{% if is_admin %} Drag dots to reposition, then click Save.{% else %} Repositioning is restricted to admin users.{% endif %}</p>
+        <p class="sub-title">Strain sensor locations on the bridge girder.{% if is_admin %} Drag dots to reposition,
+            then click Save.{% else %} Repositioning is restricted to admin users.{% endif %}</p>
     </div>
     {% if is_admin %}
     <div class="header-actions">
@@ -20,16 +21,17 @@
     <div class="girder-image-card">
         <div class="girder-image-wrapper" id="girderWrapper">
             <svg class="connector-line" id="connectorSvg"></svg>
-            <img id="girderImg" src="{{ url_for('static', filename='assets/girder.png') }}" alt="Girder Sensor Location" onload="onImgLoad()">
+            <img id="girderImg" src="{{ url_for('static', filename='assets/girder.png') }}" alt="Girder Sensor Location"
+                onload="onImgLoad()">
         </div>
     </div>
 </div>
 
-    <div class="sl-legend">
-        <div class="sl-legend-item">
-            <div class="sl-legend-dot"></div> Strain Sensor{% if is_admin %} (drag to reposition){% endif %}
-        </div>
+<div class="sl-legend">
+    <div class="sl-legend-item">
+        <div class="sl-legend-dot"></div> Strain Sensor{% if is_admin %} (drag to reposition){% endif %}
     </div>
+</div>
 
 <style>
     .sensor-location-container {
@@ -37,15 +39,17 @@
         justify-content: center;
         padding: 20px;
     }
+
     .girder-image-card {
         background: #fff;
         border-radius: 16px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.06);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 8px 32px rgba(0, 0, 0, 0.06);
         padding: 20px;
         max-width: 100%;
         overflow: hidden;
-        border: 1px solid rgba(0,0,0,0.04);
+        border: 1px solid rgba(0, 0, 0, 0.04);
     }
+
     .girder-image-wrapper {
         position: relative;
         display: inline-block;
@@ -54,6 +58,7 @@
         min-height: 200px;
         cursor: default;
     }
+
     .girder-image-wrapper img {
         max-width: 100%;
         height: auto;
@@ -67,46 +72,50 @@
         width: 16px;
         height: 16px;
         background: #3b82f6;
-        border: 3px solid rgba(255,255,255,0.95);
+        border: 3px solid rgba(255, 255, 255, 0.95);
         border-radius: 50%;
-        box-shadow: 0 0 0 4px rgba(59,130,246,0.3), 0 4px 12px rgba(0,0,0,0.25);
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3), 0 4px 12px rgba(0, 0, 0, 0.25);
         transform: translate(-50%, -50%);
         cursor: default;
         pointer-events: none;
         z-index: 10;
-        transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+        transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
+
     .dot2.editable {
         cursor: grab;
         pointer-events: auto;
     }
+
     .dot2.editable:hover {
         transform: translate(-50%, -50%) scale(1.6);
-        box-shadow: 0 0 0 8px rgba(59,130,246,0.35), 0 6px 20px rgba(0,0,0,0.35);
+        box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.35), 0 6px 20px rgba(0, 0, 0, 0.35);
         z-index: 20;
     }
+
     .dot2.dragging {
         cursor: grabbing;
         transform: translate(-50%, -50%) scale(1.7);
         background: #f59e0b;
-        box-shadow: 0 0 0 12px rgba(245,158,11,0.4), 0 8px 28px rgba(0,0,0,0.4);
+        box-shadow: 0 0 0 12px rgba(245, 158, 11, 0.4), 0 8px 28px rgba(0, 0, 0, 0.4);
         z-index: 30;
     }
+
     .dot2.moved {
         background: #f59e0b;
-        box-shadow: 0 0 0 5px rgba(245,158,11,0.35), 0 4px 12px rgba(0,0,0,0.3);
+        box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.35), 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
     .dot2-tooltip {
         position: absolute;
-        background: rgba(15,23,42,0.92);
+        background: rgba(15, 23, 42, 0.92);
         backdrop-filter: blur(14px);
         -webkit-backdrop-filter: blur(14px);
         color: #f1f5f9;
         padding: 6px 10px;
         border-radius: 8px;
-        border: 1px solid rgba(59,130,246,0.3);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
         font-size: 0.72rem;
         font-weight: 600;
         white-space: nowrap;
@@ -116,19 +125,23 @@
         letter-spacing: 0.02em;
         transition: opacity 0.15s;
     }
+
     .dot2-tooltip.draggable {
         cursor: move;
         user-select: none;
     }
+
     .dot2-tooltip.dragging {
         cursor: grabbing;
         z-index: 30;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        background: rgba(30,41,59,0.95);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        background: rgba(30, 41, 59, 0.95);
     }
+
     .dot2-tooltip.moved {
-        border-color: rgba(245,158,11,0.5);
+        border-color: rgba(245, 158, 11, 0.5);
     }
+
     .dot2-tooltip .tooltip-val {
         display: block;
         font-weight: 700;
@@ -136,28 +149,62 @@
         color: #3b82f6;
         margin-top: 2px;
     }
+
     .dot2-tooltip .tooltip-time {
         display: block;
         font-weight: 400;
         font-size: 0.58rem;
-        color: rgba(148,163,184,0.9);
+        color: rgba(148, 163, 184, 0.9);
         margin-top: 2px;
         letter-spacing: 0.02em;
     }
 
-    .dot2-tooltip.top        { transform: translate(-50%, -110%); margin-top: -10px; }
-    .dot2-tooltip.bottom     { transform: translate(-50%, 10%);    margin-top: 12px;  }
-    .dot2-tooltip.left       { transform: translate(-110%, -50%); margin-left: -10px; }
-    .dot2-tooltip.right      { transform: translate(10%, -50%);    margin-left: 12px;  }
-    .dot2-tooltip.top-left   { transform: translate(-110%, -110%); margin: -8px 0 0 -8px; }
-    .dot2-tooltip.top-right  { transform: translate(10%, -110%);   margin: -8px 0 0 8px;  }
-    .dot2-tooltip.bot-left   { transform: translate(-110%, 10%);   margin: 8px 0 0 -8px;  }
-    .dot2-tooltip.bot-right  { transform: translate(10%, 10%);     margin: 8px 0 0 8px;   }
+    .dot2-tooltip.top {
+        transform: translate(-50%, -110%);
+        margin-top: -10px;
+    }
+
+    .dot2-tooltip.bottom {
+        transform: translate(-50%, 10%);
+        margin-top: 12px;
+    }
+
+    .dot2-tooltip.left {
+        transform: translate(-110%, -50%);
+        margin-left: -10px;
+    }
+
+    .dot2-tooltip.right {
+        transform: translate(10%, -50%);
+        margin-left: 12px;
+    }
+
+    .dot2-tooltip.top-left {
+        transform: translate(-110%, -110%);
+        margin: -8px 0 0 -8px;
+    }
+
+    .dot2-tooltip.top-right {
+        transform: translate(10%, -110%);
+        margin: -8px 0 0 8px;
+    }
+
+    .dot2-tooltip.bot-left {
+        transform: translate(-110%, 10%);
+        margin: 8px 0 0 -8px;
+    }
+
+    .dot2-tooltip.bot-right {
+        transform: translate(10%, 10%);
+        margin: 8px 0 0 8px;
+    }
 
     .connector-line {
         position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         pointer-events: none;
         z-index: 5;
     }
@@ -169,6 +216,7 @@
         margin-top: 12px;
         flex-wrap: wrap;
     }
+
     .sl-legend-item {
         display: flex;
         align-items: center;
@@ -176,13 +224,14 @@
         font-size: 0.8rem;
         color: #666;
     }
+
     .sl-legend-dot {
         width: 14px;
         height: 14px;
         border-radius: 50%;
         background: #3b82f6;
         border: 2.5px solid #fff;
-        box-shadow: 0 0 0 3px rgba(59,130,246,0.3);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
     }
 
     .header-actions {
@@ -190,6 +239,7 @@
         gap: 8px;
         align-items: center;
     }
+
     .btn-edit {
         display: flex;
         align-items: center;
@@ -204,6 +254,7 @@
         color: #16a34a;
         border: 1px solid #bbf7d0;
     }
+
     .btn-edit:hover {
         background: #dcfce7;
     }
@@ -216,7 +267,7 @@
 
     function clearDots() {
         var wrapper = document.getElementById('girderWrapper');
-        wrapper.querySelectorAll('.dot2, .dot2-tooltip').forEach(function(el) { el.remove(); });
+        wrapper.querySelectorAll('.dot2, .dot2-tooltip').forEach(function (el) { el.remove(); });
     }
 
     function renderDots(sensors) {
@@ -311,8 +362,8 @@
             var ey = ty - Math.sin(angle) * tipR;
 
             html += '<line x1="' + dx + '" y1="' + dy + '" x2="' + ex + '" y2="' + ey +
-                '" stroke="rgba(59,130,246,0.5)" stroke-width="1.5" stroke-dasharray="4,3" />';
-            html += '<circle cx="' + dx + '" cy="' + dy + '" r="3" fill="#3b82f6" opacity="0.8" />';
+                '" stroke="rgba(195,41,54,0.5)" stroke-width="1.5" stroke-dasharray="4,3" />';
+            html += '<circle cx="' + dx + '" cy="' + dy + '" r="3" fill="#c32936" opacity="0.8" />';
         }
         svg.innerHTML = html;
     }
@@ -465,8 +516,8 @@
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
             body: JSON.stringify(batch)
         })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
                 console.log('Batch save result:', data);
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Positions';
@@ -475,11 +526,11 @@
                 } else {
                     hasChanges = false;
                     document.getElementById('btnSave').style.display = 'none';
-                    document.querySelectorAll('.dot2.moved').forEach(function(d) { d.classList.remove('moved'); });
+                    document.querySelectorAll('.dot2.moved').forEach(function (d) { d.classList.remove('moved'); });
                     window.SHMToast.success('Saved ' + data.count + ' position(s).', 'Berhasil', 6000);
                 }
             })
-            .catch(function(e) {
+            .catch(function (e) {
                 console.error('Save error:', e);
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Positions';
@@ -489,25 +540,25 @@
 
     function onImgLoad() { loadData(); }
 
-    window.addEventListener('DOMContentLoaded', function() {
+    window.addEventListener('DOMContentLoaded', function () {
         loadData();
     });
 
-    window.addEventListener('resize', function() { setTimeout(drawConnectors, 100); });
+    window.addEventListener('resize', function () { setTimeout(drawConnectors, 100); });
 
     function loadData() {
         console.log('loadData called, fetching /api/strain/sensor-locations');
         fetch('/api/strain/sensor-locations')
-            .then(function(r) {
+            .then(function (r) {
                 console.log('API response status:', r.status);
                 return r.json();
             })
-            .then(function(data) {
+            .then(function (data) {
                 console.log('Strain locations data:', data);
                 console.log('Data length:', data ? data.length : 'null');
                 renderDots(data);
             })
-            .catch(function(e) { console.error('Failed to load:', e); });
+            .catch(function (e) { console.error('Failed to load:', e); });
     }
 </script>
 
