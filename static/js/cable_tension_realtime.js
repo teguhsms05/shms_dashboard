@@ -90,7 +90,7 @@ async function loadCablePositions() {
 function clearCableDots() {
     const wrapper = document.getElementById("bridgeOverlayWrapper");
     if (!wrapper) return;
-    wrapper.querySelectorAll(".ct-dot, .ct-tooltip").forEach(el => el.remove());
+    wrapper.querySelectorAll(".ct-dot, .ct-dot-label, .ct-tooltip").forEach(el => el.remove());
 }
 
 function renderCableDots(positions) {
@@ -118,12 +118,21 @@ function createCableDot(wrapper, pctX, pctY, tipX, tipY, label, sensorId, index)
     dot.dataset.sensorId = sensorId;
     dot.dataset.index = index;
     dot.dataset.type = "dot";
+    dot.title = label;
     if (IS_ADMIN_CT) dot.addEventListener("mousedown", onCableDotMouseDown);
     dot.addEventListener("click", function(e) {
         if (!dot.classList.contains("moved")) {
             window.location.href = "/cable-tension/sensor/" + sensorId;
         }
     });
+
+    var dotLabel = document.createElement("div");
+    dotLabel.className = "ct-dot-label";
+    dotLabel.textContent = label;
+    dotLabel.style.left = pctX + "%";
+    dotLabel.style.top = pctY + "%";
+    dotLabel.dataset.sensorId = sensorId;
+    dotLabel.dataset.index = index;  
 
     var tip = document.createElement("div");
     tip.className = "ct-tooltip";
@@ -141,6 +150,7 @@ function createCableDot(wrapper, pctX, pctY, tipX, tipY, label, sensorId, index)
     if (IS_ADMIN_CT) tip.addEventListener("mousedown", onCableTipMouseDown);
 
     wrapper.appendChild(dot);
+    wrapper.appendChild(dotLabel);
     wrapper.appendChild(tip);
 }
 
@@ -203,6 +213,7 @@ function onCableDotMouseDown(e) {
     var sid = dragElCt.dataset.sensorId;
     dragDotRefCt = dragElCt;
     dragTipRefCt = document.querySelector('.ct-tooltip[data-sensor-id="' + sid + '"]');
+    var labelEl = document.querySelector('.ct-dot-label[data-sensor-id="' + sid + '"]');
     var wrapper = document.getElementById("bridgeOverlayWrapper");
     var wRect = wrapper.getBoundingClientRect();
 
@@ -212,6 +223,7 @@ function onCableDotMouseDown(e) {
     startTopCt = parseFloat(dragElCt.style.top);
 
     dragElCt.classList.add("dragging");
+    dragElCt._ctLabel = labelEl;
     window.addEventListener("mousemove", onCableMouseMove);
     window.addEventListener("mouseup", onCableMouseUp);
 }
@@ -252,9 +264,15 @@ function onCableMouseMove(e) {
 
     dragElCt.style.left = newLeft + "%";
     dragElCt.style.top = newTop + "%";
-    if (draggingTypeCt === 'dot' && dragTipRefCt) {
-        dragTipRefCt.style.left = newLeft + "%";
-        dragTipRefCt.style.top = newTop + "%";
+    if (draggingTypeCt === 'dot') {
+        if (dragTipRefCt) {
+            dragTipRefCt.style.left = newLeft + "%";
+            dragTipRefCt.style.top = newTop + "%";
+        }
+        if (dragElCt._ctLabel) {
+            dragElCt._ctLabel.style.left = newLeft + "%";
+            dragElCt._ctLabel.style.top = newTop + "%";
+        }
     }
 
     if (!hasCablePosChanges) {

@@ -158,15 +158,15 @@
 
 .ct-dot {
     position: absolute;
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     background: #22c55e;
     border: 2px solid #fff;
     border-radius: 50%;
     transform: translate(-50%, -50%);
     cursor: pointer;
     z-index: 4;
-    box-shadow: 0 0 4px rgba(0,0,0,0.2);
+    box-shadow: 0 0 5px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.15);
     transition: transform 0.15s;
 }
 
@@ -180,8 +180,27 @@
 
 .ct-dot.dragging {
     transform: translate(-50%, -50%) scale(1.5);
-    box-shadow: 0 0 8px rgba(59,130,246,0.5);
+    box-shadow: 0 0 10px rgba(59,130,246,0.5), 0 4px 12px rgba(0,0,0,0.3);
     z-index: 5;
+    background: #f59e0b;
+}
+
+.ct-dot.moved {
+    background: #f59e0b;
+    box-shadow: 0 0 6px rgba(245,158,11,0.4);
+}
+
+.ct-dot-label {
+    position: absolute;
+    font-size: 9px;
+    font-weight: 700;
+    color: #64748b;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 3;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .ct-tooltip {
