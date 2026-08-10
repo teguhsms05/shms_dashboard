@@ -1893,14 +1893,21 @@ def get_strain_sensor_locations():
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("""
-                SELECT DISTINCT si.sensor_id, si.sensor_code,
-                    COALESCE(sp.x, 10) AS pos_x, COALESCE(sp.y, 40) AS pos_y
+                SELECT si.sensor_id, si.sensor_code,
+                    COALESCE(sp.pos_x, NULL) AS pos_x,
+                    COALESCE(sp.pos_y, NULL) AS pos_y
                 FROM sensor_info si
-                LEFT JOIN sensor_positions sp ON sp.sensor_id = si.sensor_id AND sp.sensor_type = 'strain'
+                LEFT JOIN public.sensor_position sp ON sp.sensor_id = si.sensor_id
                 WHERE si.sensor_type = 'Strain' AND si.sensor_id IS NOT NULL
                 ORDER BY si.sensor_id ASC
             """)
-            return cur.fetchall()
+            rows = cur.fetchall()
+            for i, r in enumerate(rows):
+                if r["pos_x"] is None:
+                    r["pos_x"] = 15 + (i % 8) * 11
+                if r["pos_y"] is None:
+                    r["pos_y"] = 35 + (i // 8) * 25
+            return rows
     except Exception as e:
         print("DB ERROR get_strain_sensor_locations:", e)
         return []
@@ -1909,10 +1916,10 @@ def save_strain_sensor_position(sensor_id, pos_x, pos_y):
     try:
         with conn.cursor() as cur:
             cur.execute("""
-                INSERT INTO sensor_positions (sensor_id, sensor_type, x, y)
-                VALUES (%s, 'strain', %s, %s)
-                ON CONFLICT (sensor_id, sensor_type) DO UPDATE
-                SET x = EXCLUDED.x, y = EXCLUDED.y
+                INSERT INTO public.sensor_position (sensor_id, pos_x, pos_y)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (sensor_id) DO UPDATE
+                SET pos_x = EXCLUDED.pos_x, pos_y = EXCLUDED.pos_y
             """, (sensor_id, pos_x, pos_y))
             return True, None
     except Exception as e:
@@ -1924,10 +1931,10 @@ def batch_save_strain_sensor_positions(data_list):
         with conn.cursor() as cur:
             for d in data_list:
                 cur.execute("""
-                    INSERT INTO sensor_positions (sensor_id, sensor_type, x, y)
-                    VALUES (%s, 'strain', %s, %s)
-                    ON CONFLICT (sensor_id, sensor_type) DO UPDATE
-                    SET x = EXCLUDED.x, y = EXCLUDED.y
+                    INSERT INTO public.sensor_position (sensor_id, pos_x, pos_y)
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT (sensor_id) DO UPDATE
+                    SET pos_x = EXCLUDED.pos_x, pos_y = EXCLUDED.pos_y
                 """, (d["sensor_id"], d["pos_x"], d["pos_y"]))
             return True, None
     except Exception as e:
