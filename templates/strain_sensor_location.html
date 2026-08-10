@@ -71,10 +71,10 @@
         position: absolute;
         width: 16px;
         height: 16px;
-        background: #3b82f6;
+        background: #0284c7;
         border: 3px solid rgba(255, 255, 255, 0.95);
         border-radius: 50%;
-        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3), 0 4px 12px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.3), 0 4px 12px rgba(0, 0, 0, 0.25);
         transform: translate(-50%, -50%);
         cursor: default;
         pointer-events: none;
@@ -89,7 +89,7 @@
 
     .dot2.editable:hover {
         transform: translate(-50%, -50%) scale(1.6);
-        box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.35), 0 6px 20px rgba(0, 0, 0, 0.35);
+        box-shadow: 0 0 0 8px rgba(2, 132, 199, 0.35), 0 6px 20px rgba(0, 0, 0, 0.35);
         z-index: 20;
     }
 
@@ -114,7 +114,7 @@
         color: #f1f5f9;
         padding: 6px 10px;
         border-radius: 8px;
-        border: 1px solid rgba(59, 130, 246, 0.3);
+        border: 1px solid rgba(2, 132, 199, 0.3);
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
         font-size: 0.72rem;
         font-weight: 600;
@@ -146,7 +146,7 @@
         display: block;
         font-weight: 700;
         font-size: 0.75rem;
-        color: #3b82f6;
+        color: #38bdf8;
         margin-top: 2px;
     }
 
@@ -229,9 +229,9 @@
         width: 14px;
         height: 14px;
         border-radius: 50%;
-        background: #3b82f6;
+        background: #0284c7;
         border: 2.5px solid #fff;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.3);
     }
 
     .header-actions {
@@ -362,8 +362,8 @@
             var ey = ty - Math.sin(angle) * tipR;
 
             html += '<line x1="' + dx + '" y1="' + dy + '" x2="' + ex + '" y2="' + ey +
-                '" stroke="rgba(195,41,54,0.5)" stroke-width="1.5" stroke-dasharray="4,3" />';
-            html += '<circle cx="' + dx + '" cy="' + dy + '" r="3" fill="#c32936" opacity="0.8" />';
+                '" stroke="rgba(2,132,199,0.5)" stroke-width="2.5" stroke-dasharray="4,3" />';
+            html += '<circle cx="' + dx + '" cy="' + dy + '" r="3" fill="#0284c7" opacity="0.8" />';
         }
         svg.innerHTML = html;
     }
