@@ -1893,7 +1893,8 @@ def get_strain_sensor_locations():
             cur.execute("""
                 SELECT si.sensor_id, si.sensor_code,
                     COALESCE(sp.pos_x, NULL) AS pos_x,
-                    COALESCE(sp.pos_y, NULL) AS pos_y
+                    COALESCE(sp.pos_y, NULL) AS pos_y,
+                    sp.updated_at
                 FROM sensor_info si
                 LEFT JOIN public.sensor_position sp ON sp.sensor_id = si.sensor_id
                 WHERE si.sensor_type = 'Strain' AND si.sensor_id IS NOT NULL

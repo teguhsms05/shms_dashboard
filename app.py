@@ -1903,7 +1903,11 @@ def strain_sensor_location():
 
 @app.route("/api/strain/sensor-locations")
 def api_strain_sensor_locations():
-    return jsonify(get_strain_sensor_locations())
+    rows = get_strain_sensor_locations()
+    for r in rows:
+        if r.get("updated_at") and hasattr(r["updated_at"], "isoformat"):
+            r["updated_at"] = r["updated_at"].isoformat()
+    return jsonify(rows)
 
 @app.route("/api/strain/sensor-locations", methods=["POST"])
 @login_required

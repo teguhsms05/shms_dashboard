@@ -188,27 +188,31 @@
     position: absolute;
     font-size: 9px;
     font-weight: 600;
-    color: #334155;
-    background: rgba(255,255,255,0.92);
-    padding: 2px 5px;
-    border-radius: 4px;
+    color: #ffffff;
+    background: linear-gradient(135deg, rgba(59,130,246,0.95) 0%, rgba(37,99,235,0.95) 100%);
+    padding: 5px 8px;
+    border-radius: 8px;
     white-space: nowrap;
     pointer-events: none;
     z-index: 5;
     transform: translate(-50%, -50%);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 16px rgba(59,130,246,0.3), 0 1px 3px rgba(0,0,0,0.15);
+    backdrop-filter: blur(8px);
+    letter-spacing: 0.02em;
 }
 
 .tooltip-val {
     display: block;
     font-size: 10px;
-    color: #1e293b;
+    color: rgba(255,255,255,0.95);
+    font-weight: 700;
 }
 
 .tooltip-time {
     display: block;
     font-size: 8px;
-    color: #94a3b8;
+    color: rgba(255,255,255,0.7);
+    font-weight: 400;
 }
 
 .ct-tooltip.top { transform: translate(-50%, -120%); }
