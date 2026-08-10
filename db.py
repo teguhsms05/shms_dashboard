@@ -1848,7 +1848,7 @@ def get_cable_tension_positions():
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("""
-                SELECT sensor_id, x, y, label
+                SELECT sensor_id, x, y, tip_x, tip_y, label
                 FROM sensor_positions
                 WHERE sensor_type = 'cable_tension'
                 ORDER BY sensor_id ASC
@@ -1877,10 +1877,11 @@ def batch_save_sensor_positions(data_list):
     try:
         with conn.cursor() as cur:
             cur.executemany("""
-                INSERT INTO sensor_positions (sensor_id, sensor_type, x, y, label)
-                VALUES (%(sensor_id)s, %(sensor_type)s, %(x)s, %(y)s, %(label)s)
+                INSERT INTO sensor_positions (sensor_id, sensor_type, x, y, label, tip_x, tip_y)
+                VALUES (%(sensor_id)s, %(sensor_type)s, %(x)s, %(y)s, %(label)s, %(tip_x)s, %(tip_y)s)
                 ON CONFLICT (sensor_id, sensor_type) DO UPDATE
-                SET x = EXCLUDED.x, y = EXCLUDED.y, label = EXCLUDED.label
+                SET x = EXCLUDED.x, y = EXCLUDED.y, label = EXCLUDED.label,
+                    tip_x = EXCLUDED.tip_x, tip_y = EXCLUDED.tip_y
             """, data_list)
             return True, None
     except Exception as e:

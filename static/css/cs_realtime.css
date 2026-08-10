@@ -201,6 +201,22 @@
     letter-spacing: 0.02em;
 }
 
+.ct-tooltip.draggable {
+    cursor: move;
+    user-select: none;
+}
+
+.ct-tooltip.dragging {
+    cursor: grabbing;
+    z-index: 30;
+    background: rgba(30,41,59,0.95);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+}
+
+.ct-tooltip.moved {
+    border-color: rgba(245,158,11,0.5);
+}
+
 .tooltip-val {
     display: block;
     font-size: 10px;
