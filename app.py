@@ -1058,7 +1058,15 @@ def acc_kdi_sensor_page(sensor_id):
 @app.route("/strain")
 @login_required
 def strain_page():
-    return render_template("strain.html")
+    sensors = get_sensors_list("Strain")
+    if sensors:
+        return redirect(f"/strain/{sensors[0]}")
+    return render_template("strain.html", sensor_id=None)
+
+@app.route("/strain/<sensor_id>")
+@login_required
+def strain_sensor_page(sensor_id):
+    return render_template("strain.html", sensor_id=sensor_id)
 
 # Strain Trigger Page (redirect to first sensor)
 @app.route("/strain-trigger")

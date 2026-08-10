@@ -291,14 +291,28 @@
                     </div>
                 </div>
 
-                <a href="/strain" class="nav-item {% if request.endpoint == 'strain_page' %}active{% endif %}">
-                    <span class="icon"><i class="fa-solid fa-chart-line"></i></span>
-                    <span class="label">Strain</span>
-                </a>
-                <a href="/strain/sensor-location" class="nav-item {% if request.endpoint == 'strain_sensor_location' %}active{% endif %}">
-                    <span class="icon"><i class="fa-solid fa-location-dot"></i></span>
-                    <span class="label">Sensor Location</span>
-                </a>
+                <div
+                    class="nav-group has-submenu {% if request.endpoint in ['strain_page', 'strain_sensor_page', 'strain_sensor_location'] %}open{% endif %}">
+                    <a href="javascript:void(0);"
+                        class="nav-item submenu-toggle {% if request.endpoint in ['strain_page', 'strain_sensor_page', 'strain_sensor_location'] %}active{% endif %}">
+                        <span class="icon"><i class="fa-solid fa-chart-line"></i></span>
+                        <span class="label">Strain</span>
+                        <span class="arrow"><i
+                                class="fa-solid {% if request.endpoint in ['strain_page', 'strain_sensor_page', 'strain_sensor_location'] %}fa-chevron-down{% else %}fa-chevron-right{% endif %}"></i></span>
+                    </a>
+                    <div class="submenu">
+                        {% for sid in (strain_sensors if strain_sensors is defined else []) %}
+                        <a href="/strain/{{ sid }}"
+                            class="submenu-item {% if request.endpoint == 'strain_sensor_page' and request.view_args.get('sensor_id') == sid %}active{% endif %}">
+                            {{ sid | upper }}
+                        </a>
+                        {% endfor %}
+                        <a href="/strain/sensor-location"
+                            class="submenu-item {% if request.endpoint == 'strain_sensor_location' %}active{% endif %}">
+                            Sensor Location
+                        </a>
+                    </div>
+                </div>
 
                 <div
                     class="nav-group has-submenu {% if request.endpoint in ['strain_trigger_page', 'strain_trigger_sensor_page'] %}open{% endif %}">

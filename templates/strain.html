@@ -4,7 +4,7 @@
 <div class="strain-container">
     <!-- Header -->
     <div class="strain-header">
-        <h2 class="page-title">Strain Gauge Monitoring – <span style="color: var(--primary);">SG-01</span></h2>
+        <h2 class="page-title">Strain Gauge Monitoring – <span style="color: var(--primary);">{{ sensor_id or 'N/A' }}</span></h2>
         <p>Monitoring regangan material (microstrain) dan kalkulasi tegangan secara real-time.</p>
     </div>
 
@@ -160,5 +160,6 @@
     </div>
 </div>
 
+<div id="strain-data" data-sensor-id="{{ sensor_id or '' }}"></div>
 <script src="{{ url_for('static', filename='js/strain.js') }}"></script>
 {% endblock %}
