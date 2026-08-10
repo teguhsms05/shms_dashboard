@@ -226,11 +226,20 @@
     }
 
     function renderDots(sensors) {
-        clearDots();
         var wrapper = document.getElementById('girderWrapper');
+        if (!wrapper) {
+            console.error('girderWrapper not found in DOM');
+            return;
+        }
+        clearDots();
         sensorsData = sensors;
 
-        if (!sensors || sensors.length === 0) return;
+        if (!sensors || sensors.length === 0) {
+            console.warn('No sensors data to render');
+            return;
+        }
+
+        console.log('Rendering', sensors.length, 'dots');
 
         for (var i = 0; i < sensors.length; i++) {
             var s = sensors[i];
