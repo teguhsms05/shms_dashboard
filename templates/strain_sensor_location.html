@@ -417,12 +417,24 @@
 
     function onImgLoad() { loadData(); }
 
+    window.addEventListener('DOMContentLoaded', function() {
+        loadData();
+    });
+
     window.addEventListener('resize', function() { setTimeout(drawConnectors, 100); });
 
     function loadData() {
+        console.log('loadData called, fetching /api/strain/sensor-locations');
         fetch('/api/strain/sensor-locations')
-            .then(function(r) { return r.json(); })
-            .then(function(data) { renderDots(data); })
+            .then(function(r) {
+                console.log('API response status:', r.status);
+                return r.json();
+            })
+            .then(function(data) {
+                console.log('Strain locations data:', data);
+                console.log('Data length:', data ? data.length : 'null');
+                renderDots(data);
+            })
             .catch(function(e) { console.error('Failed to load:', e); });
     }
 </script>
