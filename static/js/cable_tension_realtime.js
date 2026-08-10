@@ -522,7 +522,16 @@ window.captureCableTensionRealtime = function () {
         return;
     }
 
-    html2canvas(target, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff" })
+    html2canvas(target, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        onclone: function(clonedDoc) {
+            var tableSection = clonedDoc.getElementById("tension-table-section");
+            if (tableSection) tableSection.style.display = "none";
+        }
+    })
     .then(function (canvas) {
         var dataUrl = canvas.toDataURL("image/png");
 
