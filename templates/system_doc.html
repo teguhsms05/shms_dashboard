@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="dashboard-header-row">
+    <div class="header-titles">
+        <h2 class="main-title">System Info – System Summary</h2>
+        <p class="sub-title">System diagrams, sensor drawings, and logger documentation.</p>
+    </div>
+</div>
+
+<!-- Tab Navigation -->
+<div class="sysinfo-tabs">
+    <button class="sysinfo-tab active" data-tab="system-diagram">System Diagram</button>
+    <button class="sysinfo-tab" data-tab="drawing-sensors">Drawing (Sensors)</button>
+    <button class="sysinfo-tab" data-tab="drawing-loggers">Drawing (Loggers)</button>
+</div>
+
+<!-- Tab Content Panels -->
+<div class="sysinfo-panels">
+    <!-- System Diagram -->
+    <div class="sysinfo-panel active" id="system-diagram">
+        <div class="sysinfo-image-wrap">
+            <img src="{{ url_for('static', filename='assets/system_diagram.jpg') }}"
+                alt="System Diagram – DAQ Data Flow & Process">
+        </div>
+    </div>
+
+    <!-- Drawing (Sensors) -->
+    <div class="sysinfo-panel" id="drawing-sensors">
+        <div class="sysinfo-image-wrap">
+            <img src="{{ url_for('static', filename='assets/drawing_sensor.jpg') }}" alt="Drawing – Sensors">
+        </div>
+    </div>
+
+    <!-- Drawing (Loggers) -->
+    <div class="sysinfo-panel" id="drawing-loggers">
+        <div class="sysinfo-image-wrap">
+            <img src="{{ url_for('static', filename='assets/drawing_logger.jpg') }}" alt="Drawing – Loggers">
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const tabs = document.querySelectorAll(".sysinfo-tab");
+        const panels = document.querySelectorAll(".sysinfo-panel");
+
+        tabs.forEach(tab => {
+            tab.addEventListener("click", function () {
+                // Remove active from all
+                tabs.forEach(t => t.classList.remove("active"));
+                panels.forEach(p => p.classList.remove("active"));
+
+                // Activate clicked tab + panel
+                this.classList.add("active");
+                document.getElementById(this.dataset.tab).classList.add("active");
+            });
+        });
+    });
+</script>
+
+{% endblock %}

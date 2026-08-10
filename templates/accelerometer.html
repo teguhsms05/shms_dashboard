@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header-row">
+    <h2 class="page-title">Accelerometer – <span style="color: var(--primary);">Structural Health</span></h2>
+</div>
+
+<!-- Tabs -->
+<div class="tab-bar">
+    <button class="tab-btn active" data-tab="health">Health Index</button>
+    <button class="tab-btn" data-tab="spectrum">Spectrum</button>
+    <button class="tab-btn" data-tab="modal">Modal Trend</button>
+    <button class="tab-btn" data-tab="alerts">Alerts</button>
+    <button class="tab-btn" data-tab="modeshape">Mode Shape</button>
+    <div class="tab-indicator"></div>
+</div>
+
+<!-- Tab 1: Health Index -->
+<div id="tab-health" class="tab-content active">
+    <!-- Health Score Card -->
+    <div class="card chart-card">
+        <div class="chart-header-row">
+            <h3>Structural Health Index</h3>
+        </div>
+        <div class="accel-health-row">
+            <div class="accel-health-score" id="health-score-box">
+                <span class="accel-score-label">Health Score</span>
+                <span class="accel-score-value" id="health-score-val">—</span>
+            </div>
+            <div class="accel-health-info" id="health-info-box">
+                <p><strong>Analysis Time:</strong> <span id="health-time">—</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Summary Table -->
+    <div class="card datatable-card">
+        <div class="datatable-header">
+            <h3>Dashboard Summary</h3>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Analysis Time</th>
+                        <th>Health Score</th>
+                        <th>Mode</th>
+                        <th>Freq Drift (%)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="summary-table-body">
+                    <!-- Dynamic rows -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Tab 2: Spectrum (FFT-like) -->
+<div id="tab-spectrum" class="tab-content">
+    <div class="card chart-card">
+        <div class="chart-header-row">
+            <h3>Modal Spectrum Peaks (Simulated FFT)</h3>
+        </div>
+        <div id="spectrum-chart" style="width: 100%; height: 400px;"></div>
+    </div>
+</div>
+
+<!-- Tab 3: Modal Trend -->
+<div id="tab-modal" class="tab-content">
+    <div class="card chart-card">
+        <div class="chart-header-row">
+            <h3>Modal Frequency Trend</h3>
+            <div class="chart-actions">
+                <select id="mode-selector" class="accel-select">
+                    <option value="1">Mode 1</option>
+                    <option value="2">Mode 2</option>
+                    <option value="3">Mode 3</option>
+                    <option value="4">Mode 4</option>
+                    <option value="5">Mode 5</option>
+                    <option value="6">Mode 6</option>
+                </select>
+            </div>
+        </div>
+        <div id="modal-trend-chart" style="width: 100%; height: 400px;"></div>
+    </div>
+</div>
+
+<!-- Tab 3: Alerts -->
+<div id="tab-alerts" class="tab-content">
+    <div class="card datatable-card">
+        <div class="datatable-header">
+            <h3>Latest Alerts (Non-Normal)</h3>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Analysis Time</th>
+                        <th>Mode</th>
+                        <th>Freq Drift (%)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="alerts-table-body">
+                    <!-- Dynamic rows -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Tab 4: Mode Shape -->
+<div id="tab-modeshape" class="tab-content">
+    <div class="card chart-card">
+        <div class="chart-header-row">
+            <h3>Mode Shape Vector</h3>
+            <div class="chart-actions">
+                <select id="modeshape-selector" class="accel-select">
+                    <option value="1">Mode 1</option>
+                    <option value="2">Mode 2</option>
+                    <option value="3">Mode 3</option>
+                    <option value="4">Mode 4</option>
+                    <option value="5">Mode 5</option>
+                    <option value="6">Mode 6</option>
+                </select>
+            </div>
+        </div>
+        <div id="modeshape-chart" style="width: 100%; height: 400px;"></div>
+        <div id="modeshape-raw" class="accel-raw-data" style="display:none;"></div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/accelerometer.js') }}"></script>
+
+{% endblock %}

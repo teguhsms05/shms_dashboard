@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="strain-container">
+    <!-- Header -->
+    <div class="strain-header">
+        <h2 class="page-title">Strain Dywidag Monitoring – <span style="color: var(--primary);">{{ sensor_id | upper }}</span></h2>
+        <p>Real-time monitoring of Dywidag strain sensors via HiveMQ broker.</p>
+    </div>
+
+    <!-- Summary Row (Dynamic) -->
+    <div class="strain-summary-row" id="dynamic-summary-row">
+        <div class="strain-summary-card">
+            <div class="strain-card-icon icon-blue"><i class="fa-solid fa-clock"></i></div>
+            <span class="label">Last Update</span>
+            <span class="value" id="card-last-update">--:--:--</span>
+        </div>
+        <!-- Dynamic sensor cards will be injected here by JS -->
+    </div>
+
+    <!-- Main Grid -->
+    <div class="strain-main-grid">
+        <div id="capture-zone" style="grid-column: span 4; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 0;">
+            <!-- Real-Time Strain Chart -->
+            <div class="strain-card" style="grid-column: span 4;">
+                <div class="strain-card-header">
+                    <h3>Real-Time Dywidag Strain (ε)</h3>
+                    <div style="display: flex; gap: 20px; align-items: center;">
+                        <div class="strain-legend" id="dynamic-legend">
+                            <!-- Dynamic legend items will be injected here by JS -->
+                        </div>
+                        <div class="strain-controls">
+                            <button class="strain-btn-icon" id="btn-screenshot" title="Take Screenshot">
+                                <i class="fa-solid fa-camera"></i>
+                            </button>
+                            <button class="strain-btn strain-btn-blue" id="btn-stop-start">Stop</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="strain-chart" class="chart-box" style="height: 400px;"></div>
+            </div>
+
+            <!-- Real-time Snapshot Table -->
+            <div class="strain-card" style="grid-column: span 4;">
+                <div class="strain-card-header">
+                    <h3>Data Snapshot Table</h3>
+                </div>
+                <div class="table-wrapper">
+                    <table class="strain-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Sensor</th>
+                                <th>Strain (με)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="snapshot-table-body">
+                            <!-- Rows injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-footer">
+                    <div class="table-info" id="table-entries-info">Showing 0 to 0 of 0 entries</div>
+                    <div class="shm-pagination" id="table-pagination"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.CURRENT_SENSOR_ID = "{{ sensor_id }}";
+</script>
+<script src="{{ url_for('static', filename='js/strain_dywidag.js') }}"></script>
+{% endblock %}

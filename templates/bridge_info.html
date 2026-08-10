@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="dashboard-header-row">
+    <div class="header-titles">
+        <h2 class="main-title">System Info – Bridge Info</h2>
+        <p class="sub-title">General information about the bridge structure and specifications.</p>
+    </div>
+</div>
+
+<!-- Bridge Info Layout -->
+<div class="bi-layout">
+
+    <!-- Left: Bridge Photos -->
+    <div class="bi-photos">
+        <div class="bi-photo-card">
+            <img src="{{ url_for('static', filename='assets/bridge.png') }}" alt="Bridge – Daytime View">
+        </div>
+        <div class="bi-photo-card">
+            <img src="{{ url_for('static', filename='assets/bridge.png') }}" alt="Bridge – Night View">
+        </div>
+    </div>
+
+    <!-- Right: Specifications Table -->
+    <div class="bi-specs">
+        <table class="bi-table">
+            <tbody>
+                <!-- Bridge Name -->
+                <tr>
+                    <td class="bi-label" colspan="3">Bridge Name</td>
+                    <td class="bi-value">FISABILILLAH Bridge</td>
+                </tr>
+
+                <!-- Location -->
+                <tr>
+                    <td class="bi-label" colspan="3">Location</td>
+                    <td class="bi-value">Batam Island and Tonton Island</td>
+                </tr>
+
+                <!-- Bridge Type -->
+                <tr>
+                    <td class="bi-cat" rowspan="5">Bridge Type</td>
+                    <td class="bi-sub" rowspan="4">Super<br>Structure</td>
+                    <td class="bi-label">Type</td>
+                    <td class="bi-value">Cable-Stayed</td>
+                </tr>
+                <tr>
+                    <td class="bi-label">Girder</td>
+                    <td class="bi-value">Concrete Edge Girder</td>
+                </tr>
+                <tr>
+                    <td class="bi-label">Pylon</td>
+                    <td class="bi-value">A Type</td>
+                </tr>
+                <tr>
+                    <td class="bi-label">Cable</td>
+                    <td class="bi-value">Parallel Strand Cable (PSC)</td>
+                </tr>
+                <tr>
+                    <td class="bi-label" colspan="2">Sub-Structure</td>
+                    <td class="bi-value">Pile Foundation</td>
+                </tr>
+
+                <!-- Dimension -->
+                <tr>
+                    <td class="bi-cat" rowspan="3">Dimension</td>
+                    <td class="bi-label" colspan="2">Length (Span)</td>
+                    <td class="bi-value">L = 641.8m (145.9m + 350.0m + 145.9m)</td>
+                </tr>
+                <tr>
+                    <td class="bi-label" colspan="2">Width (Lanes)</td>
+                    <td class="bi-value">B = 21.5m (4 lanes)</td>
+                </tr>
+                <tr>
+                    <td class="bi-label" colspan="2">Pylon Height</td>
+                    <td class="bi-value">119.764m</td>
+                </tr>
+
+                <!-- Design Standard -->
+                <tr>
+                    <td class="bi-cat" rowspan="3">Design Standard</td>
+                    <td class="bi-label" colspan="2">Design Live Load (like vehicle load)</td>
+                    <td class="bi-value">Design Live load of SNI 1992</td>
+                </tr>
+                <tr>
+                    <td class="bi-label" colspan="2">Earthquake Load</td>
+                    <td class="bi-value">Seismic Zone 1</td>
+                </tr>
+                <tr>
+                    <td class="bi-label" colspan="2">ETC</td>
+                    <td class="bi-value">-</td>
+                </tr>
+
+                <!-- Bridge Completion -->
+                <tr>
+                    <td class="bi-label" colspan="3">Bridge Completion</td>
+                    <td class="bi-value">1998</td>
+                </tr>
+
+                <!-- Design -->
+                <tr>
+                    <td class="bi-label" colspan="3">Design</td>
+                    <td class="bi-value">LAPI ITB</td>
+                </tr>
+
+                <!-- Construction -->
+                <tr>
+                    <td class="bi-label" colspan="3">Construction</td>
+                    <td class="bi-value">PT. Pembangunan Perumahan</td>
+                </tr>
+
+                <!-- Bridge Manager -->
+                <tr>
+                    <td class="bi-label" colspan="3">Bridge Manager (Owner)</td>
+                    <td class="bi-value">BPJN Kepulauan Riau</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

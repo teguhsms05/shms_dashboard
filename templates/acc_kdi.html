@@ -1,0 +1,601 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="vibration-container">
+    <!-- Header -->
+    <div class="vibration-header">
+        <h2 class="page-title">Acc KDI Sensor – <span style="color: var(--primary);">{{ sensor_id | upper if
+                sensor_id
+                else 'N/A' }}</span></h2>
+        <p>Real-time accelerometer monitoring for structural vibration analysis.</p>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-bar">
+        <button class="tab-btn active" data-tab="realtime">Real-Time</button>
+        <button class="tab-btn" data-tab="statistik">Statistik</button>
+        <button class="tab-btn" data-tab="history">History Data</button>
+        <div class="tab-indicator"></div>
+    </div>
+
+    <!-- Tab Content: Real-Time -->
+    <div id="tab-realtime" class="tab-content active">
+        <!-- Summary Row -->
+        <div class="vib-summary-row">
+            <div class="vib-summary-card">
+                <div class="vib-card-icon icon-blue"><i class="fa-solid fa-clock"></i></div>
+                <span class="label">Last Update</span>
+                <span class="value" id="card-last-update"
+                    style="font-size: 1.6rem; font-weight: 800; color: var(--text-main); margin-top: 4px; display: inline-block;">--:--:--</span>
+            </div>
+
+            <div class="vib-summary-card" style="grid-column: span 2;">
+                <div class="vib-card-icon icon-purple"><i class="fa-solid fa-wave-square"></i></div>
+                <span class="label">Dominant Frequency</span>
+                <div class="dominant-content">
+                    <div class="dominant-card dom-x">
+                        <span class="axis-label">X-AXIS</span>
+                        <span class="axis-val"><span id="summ-peak-x">--</span> </span>
+                    </div>
+                    <div class="dominant-card dom-y">
+                        <span class="axis-label">Y-AXIS</span>
+                        <span class="axis-val"><span id="summ-peak-y">--</span> </span>
+                    </div>
+                    <div class="dominant-card dom-z">
+                        <span class="axis-label">Z-AXIS</span>
+                        <span class="axis-val"><span id="summ-peak-z">--</span> </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="vib-summary-card">
+                <div class="vib-card-icon icon-green"><i class="fa-solid fa-link"></i></div>
+                <div class="label">
+                    <span>Connection</span>
+                    <i class="fa-solid fa-circle-info" id="btn-conn-info"
+                        style="cursor: pointer; font-size: 0.8rem; opacity: 0.6;"></i>
+                </div>
+
+                <div id="conn-info-popup"
+                    style="display: none; position: absolute; top: 40px; right: 15px; background: var(--bg-card); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 100; font-size: 0.75rem; color: var(--text-main); width: 180px; line-height: 1.4;">
+                    <div style="margin-bottom:4px;"><strong style="color:#22c55e;">Excellent:</strong> &lt; 20 ms</div>
+                    <div style="margin-bottom:4px;"><strong style="color:#84cc16;">Very Good:</strong> 50 ms</div>
+                    <div style="margin-bottom:4px;"><strong style="color:#ef4444;">Bad:</strong> &gt; 300 ms</div>
+                </div>
+
+                <div id="card-connection" class="status-offline"
+                    style="display: flex; flex-direction: column; margin-top: 4px;">
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <span id="connection-dot" class="status-dot"
+                            style="width:10px; height:10px; border-radius:50%; background:#94a3b8; display:inline-block; box-shadow:none;"></span>
+                        <span id="connection-text"
+                            style="font-size: 1.6rem; font-weight: 800; color: var(--text-main);">Offline</span>
+                    </div>
+                    <span
+                        style="margin-left: 18px; font-size:0.75rem; color:var(--text-muted); font-weight: 500; margin-top: 4px;"
+                        id="connection-ms">Disconnected</span>
+                </div>
+            </div>
+
+            <div class="vib-summary-card">
+                <div class="vib-card-icon icon-orange"><i class="fa-solid fa-bell"></i></div>
+                <span class="label">Alert Level</span>
+                <div id="card-alert" style="display:flex; align-items:center; gap:6px; margin-top: 4px;">
+                    <span id="alert-dot"
+                        style="width:10px; height:10px; border-radius:50%; background:#22c55e; display:inline-block; box-shadow:0 0 8px #22c55e;"></span>
+                    <span id="alert-text"
+                        style="font-size: 1.6rem; font-weight: 800; color: var(--text-main);">Normal</span>
+                </div>
+                <span style="font-size:0.75rem; color:var(--text-muted); font-weight: 500;" id="alert-sub">SAFE
+                    LIMITS</span>
+            </div>
+
+            <div class="vib-summary-card">
+                <div class="vib-card-icon icon-red"><i class="fa-solid fa-calendar-check"></i></div>
+                <span class="label">Event Count</span>
+                <span class="value" id="card-event-count"
+                    style="font-size: 1.6rem; font-weight: 800; color: var(--text-main); margin-top: 4px; display: inline-block;">0</span>
+                <span style="font-size:0.75rem; color:var(--text-muted); font-weight: 500;">Active Session</span>
+            </div>
+        </div>
+
+        <br>
+
+        <!-- Main Grid -->
+        <div class="vib-main-grid">
+            <!-- capture-zone: RT chart + FFT + side panel -->
+            <div id="capture-zone"
+                style="grid-column: span 4; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 0;">
+                <!-- Real-Time Chart -->
+                <div class="vib-card vib-chart-full" style="grid-column: span 4;">
+                    <div class="vib-card-header">
+                        <h3>Graph Real-Time Data</h3>
+                        <div style="display: flex; gap: 20px; align-items: center;">
+                            <div class="vib-legend">
+                                <div class="legend-item" id="toggle-x" data-axis="x">
+                                    <span class="dot" style="background: #ef4444;"></span> X-Axis
+                                </div>
+                                <div class="legend-item" id="toggle-y" data-axis="y">
+                                    <span class="dot" style="background: #3b82f6;"></span> Y-Axis
+                                </div>
+                                <div class="legend-item" id="toggle-z" data-axis="z">
+                                    <span class="dot" style="background: #22c55e;"></span> Z-Axis
+                                </div>
+                            </div>
+                            <div class="vib-controls">
+                                <button class="vib-btn mode-btn" data-mode="raw">Raw</button>
+                                <button class="vib-btn mode-btn active" data-mode="bandpass">Bandpass</button>
+                                <span
+                                    style="width: 1px; height: 16px; background: var(--border-color); margin: 0 4px;"></span>
+                                <button class="vib-btn vib-btn-blue" id="btn-stop-start"
+                                    style="background: rgb(34, 197, 94); border-color: rgb(34, 197, 94);">Start</button>
+                                <button class="vib-btn-icon" id="btn-screenshot" title="Take Screenshot">
+                                    <i class="fa-solid fa-camera"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="realtime-chart" class="chart-box"></div>
+                </div>
+
+                <!-- FFT and Right Panel -->
+                <div class="vib-card vib-chart-left">
+                    <div class="vib-card-header" style="justify-content: space-between; align-items: flex-end;">
+                        <div style="display: flex; flex-direction: column;">
+                            <h3 style="margin: 0; font-size: 1.1rem;">FFT Frequency Spectrum</h3>
+                            <div id="fft-subtitle"
+                                style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500; margin-top: 2px;">
+                                N - -- | Dominant: X - -- Hz, Y - -- Hz, Z - -- Hz
+                            </div>
+                        </div>
+                        <div class="vib-legend" style="margin-bottom: 4px;">
+                            <div class="legend-item fft-legend-btn" data-axis="x">
+                                <span class="dot" style="background: #ef4444;"></span> FFT X
+                            </div>
+                            <div class="legend-item fft-legend-btn" data-axis="y">
+                                <span class="dot" style="background: #3b82f6;"></span> FFT Y
+                            </div>
+                            <div class="legend-item fft-legend-btn" data-axis="z">
+                                <span class="dot" style="background: #22c55e;"></span> FFT Z
+                            </div>
+                        </div>
+                    </div>
+                    <div id="fft-chart" class="chart-box"></div>
+                </div>
+
+                <!-- Right Stack: Peak Summary & Monitoring Info -->
+                <div class="vib-side-stack">
+                    <!-- Peak Summary -->
+                    <div class="vib-card">
+                        <div class="vib-card-header">
+                            <h3>Peak Summary</h3>
+                        </div>
+                        <table class="vib-table">
+                            <thead>
+                                <tr>
+                                    <th>Axis</th>
+                                    <th>Rank</th>
+                                    <th>Freq (Hz)</th>
+                                    <th>Mag</th>
+                                </tr>
+                            </thead>
+                            <tbody id="peak-summary-body">
+                                <!-- Populated dynamically by JS -->
+                                <tr>
+                                    <td colspan="4" style="text-align:center; padding: 20px; color: var(--text-muted);">
+                                        Calculating peaks...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Monitoring Info -->
+                    <div class="vib-card">
+                        <div class="vib-card-header">
+                            <h3>Monitoring Info</h3>
+                        </div>
+                        <ul class="info-list">
+                            <li class="info-item">
+                                <span class="info-label">Sampling</span>
+                                <span class="info-val" id="monitor-sampling">-- Hz</span>
+                            </li>
+                            <li class="info-item">
+                                <span class="info-label">Window</span>
+                                <select id="select-data-window" class="info-select">
+                                    <option value="1024">1024</option>
+                                    <option value="2048" selected>2048</option>
+                                    <option value="4096">4096</option>
+                                </select>
+                            </li>
+                            <li class="info-item" style="border-bottom: none;">
+                                <span class="info-label">Filter</span>
+                                <select id="select-filter-type" class="info-select">
+                                    <option value="raw">Raw</option>
+                                    <option value="bandpass" selected>Bandpass (0.1–10 Hz)</option>
+                                    <option value="highpass">Highpass (> 0.5 Hz)</option>
+                                    <option value="lowpass">Lowpass (< 5 Hz)</option>
+                                </select>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div><!-- end capture-zone -->
+
+            <!-- Removed Snapshot Table as requested -->
+        </div>
+    </div><!-- End Tab: Real-Time -->
+
+    <!-- Tab Content: Statistik -->
+    <div id="tab-statistik" class="tab-content">
+        <!-- Search Statistic Card -->
+        <div class="mb-3 card search-card">
+            <div class="chart-header-row">
+                <h3 class="bar-card-title"><span class="bar-title-accent"></span>Search Statistic</h3>
+            </div>
+            <div class="bg-body-tertiary card-body">
+                <!-- Row 1: Metadata -->
+                <div class="mb-3 row">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text" style="width: 90px;">Tahun</span>
+                            <select id="select-stat-year" class="form-select">
+                                <option value="" disabled selected>Pilih Tahun</option>
+                                <option value="2026">2026</option>
+                                <option value="2025">2025</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text" style="width: 90px;">Bulan</span>
+                            <select id="select-stat-month" class="form-select" disabled>
+                                <option value="" disabled selected>Pilih Bulan</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text" style="width: 110px;">Mingguan</span>
+                            <select id="select-stat-week" class="form-select" disabled>
+                                <option value="" disabled selected>Pilih Periode</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 2 & 3: Parameters and Actions -->
+                <div class="row">
+                    <!-- Left Column: Date Range -->
+                    <div class="col-md-6 border-end border-dark">
+                        <div class="d-flex flex-column h-100 justify-content-between">
+                            <div class="mb-2 input-group">
+                                <span class="input-group-text" style="width: 90px;">Dari</span>
+                                <input type="text" id="input-stat-start" class="form-control" readonly
+                                    placeholder="Dari">
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text" style="width: 90px;">Sampai</span>
+                                <input type="text" id="input-stat-end" class="form-control" readonly
+                                    placeholder="Sampai">
+                            </div>
+
+                        </div>
+                    </div>
+                    <!-- Right Column: Option and Buttons -->
+                    <div class="col-md-6">
+                        <div class="d-flex flex-column h-100 justify-content-between">
+                            <div class="mb-2 input-group">
+                                <span class="input-group-text" style="width: 90px;">Option</span>
+                                <select id="select-stat-option" class="form-select">
+                                    <option value="all">Semua</option>
+                                    <option value="dominant">Dominant Peak Only</option>
+                                </select>
+                            </div>
+                            <div class="d-flex justify-content-end" style="gap: 15px;">
+                                <button id="btn-stat-help" class="btn btn-primary"
+                                    style="min-width: 80px;">Help</button>
+                                <button id="btn-stat-search" class="btn btn-primary"
+                                    style="min-width: 80px;">Cari</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Chart Card -->
+        <div class="card chart-card mt-3" style="position: relative;">
+            <div class="chart-header-row">
+                <h3 class="bar-card-title"><span class="bar-title-accent"></span> Statistik Chart (Historical Peaks)
+                </h3>
+                <div class="chart-actions">
+                    <button class="icon-btn" onclick="captureAccKdiStatistik()" title="Capture and Save Image (PNG)"
+                        style="font-size: 16px; color: #64748b; background: none; border: none; cursor: pointer;">
+                        <i class="fa-solid fa-camera"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="stats-chart" style="width: 100%; height: 450px;"></div>
+
+            <!-- ACC KDI Legend -->
+            <div class="chart-legend" id="acc-kdi-statistik-legend"
+                style="padding: 10px; display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; border-top: 1px solid #f1f5f9;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span class="legend-item" id="legend-stat-x"
+                        style="cursor: pointer; font-size: 12px; font-weight: 600; color: #64748b;">
+                        <span class="legend-line"
+                            style="display: inline-block; width: 16px; height: 3px; background: #ef4444; vertical-align: middle; margin-right: 5px;"></span>
+                        X-Axis Peak
+                    </span>
+                    <span class="legend-item" id="legend-stat-y"
+                        style="cursor: pointer; font-size: 12px; font-weight: 600; color: #64748b; margin-left: 10px;">
+                        <span class="legend-line"
+                            style="display: inline-block; width: 16px; height: 3px; background: #3b82f6; vertical-align: middle; margin-right: 5px;"></span>
+                        Y-Axis Peak
+                    </span>
+                    <span class="legend-item" id="legend-stat-z"
+                        style="cursor: pointer; font-size: 12px; font-weight: 600; color: #64748b; margin-left: 10px;">
+                        <span class="legend-line"
+                            style="display: inline-block; width: 16px; height: 3px; background: #22c55e; vertical-align: middle; margin-right: 5px;"></span>
+                        Z-Axis Peak
+                    </span>
+                </div>
+            </div>
+
+            <!-- Summary Area -->
+            <div class="summary-stats-bar" id="acc-kdi-statistik-summary"
+                style="display: flex; gap: 20px; padding: 10px 15px; background: #f8fafc; border-top: 1px solid #f1f5f9;">
+                <div class="stat-summary-box">
+                    <div
+                        style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase;">
+                        X-Axis Peak (Hz)</div>
+                    <div style="display: flex; gap: 12px; font-size: 13px;">
+                        <span>Min: <b id="stat-summary-min-x" style="color: #10b981;">--</b></span>
+                        <span>Max: <b id="stat-summary-max-x" style="color: #ef4444;">--</b></span>
+                        <span>Avg: <b id="stat-summary-avg-x" style="color: #3b82f6;">--</b></span>
+                    </div>
+                </div>
+                <div style="width: 1px; height: 35px; background: #e2e8f0;"></div>
+                <div class="stat-summary-box">
+                    <div
+                        style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase;">
+                        Y-Axis Peak (Hz)</div>
+                    <div style="display: flex; gap: 12px; font-size: 13px;">
+                        <span>Min: <b id="stat-summary-min-y" style="color: #10b981;">--</b></span>
+                        <span>Max: <b id="stat-summary-max-y" style="color: #ef4444;">--</b></span>
+                        <span>Avg: <b id="stat-summary-avg-y" style="color: #3b82f6;">--</b></span>
+                    </div>
+                </div>
+                <div style="width: 1px; height: 35px; background: #e2e8f0;"></div>
+                <div class="stat-summary-box">
+                    <div
+                        style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase;">
+                        Z-Axis Peak (Hz)</div>
+                    <div style="display: flex; gap: 12px; font-size: 13px;">
+                        <span>Min: <b id="stat-summary-min-z" style="color: #10b981;">--</b></span>
+                        <span>Max: <b id="stat-summary-max-z" style="color: #ef4444;">--</b></span>
+                        <span>Avg: <b id="stat-summary-avg-z" style="color: #3b82f6;">--</b></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div><!-- End Tab Content: Statistik -->
+
+    <!-- Tab Content: History Data -->
+    <div id="tab-history" class="tab-content">
+
+        <!-- Search History Card (same layout as Search Statistic) -->
+        <div class="mb-3 card search-card">
+            <div class="chart-header-row">
+                <h3 class="bar-card-title"><span class="bar-title-accent"></span>Search History</h3>
+                <div class="chart-actions">
+                    <button class="btn-export" id="btn-history-export-csv">Export CSV</button>
+                </div>
+            </div>
+            <div class="bg-body-tertiary card-body">
+                <!-- Row 1: Cascading Dropdowns -->
+                <div class="mb-3 row">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text" style="width: 90px;">Tahun</span>
+                            <select id="select-hist-year" class="form-select">
+                                <option value="" disabled selected>Pilih Tahun</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text" style="width: 90px;">Bulan</span>
+                            <select id="select-hist-month" class="form-select" disabled>
+                                <option value="" disabled selected>Pilih Bulan</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text" style="width: 110px;">Mingguan</span>
+                            <select id="select-hist-week" class="form-select" disabled>
+                                <option value="" disabled selected>Pilih Periode</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 2: Date Range + Option + Buttons -->
+                <div class="row">
+                    <div class="col-md-6 border-end border-dark">
+                        <div class="d-flex flex-column h-100 justify-content-between">
+                            <div class="mb-2 input-group">
+                                <span class="input-group-text" style="width: 90px;">Dari</span>
+                                <input type="text" id="input-history-start" class="form-control" readonly
+                                    placeholder="Dari">
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text" style="width: 90px;">Sampai</span>
+                                <input type="text" id="input-history-end" class="form-control" readonly
+                                    placeholder="Sampai">
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex flex-column h-100 justify-content-between">
+                            <div class="mb-2 input-group">
+                                <span class="input-group-text" style="width: 90px;">Option</span>
+                                <select id="select-hist-option" class="form-select">
+                                    <option value="f1">f1 (Dominant Peak)</option>
+                                    <option value="f2">f2 (2nd Peak)</option>
+                                    <option value="f3">f3 (3rd Peak)</option>
+                                    <option value="all">Semua (f1 + f2 + f3)</option>
+                                </select>
+                            </div>
+                            <div class="d-flex justify-content-end" style="gap: 15px;">
+                                <button id="btn-history-help" class="btn btn-primary"
+                                    style="min-width: 80px;">Help</button>
+                                <button id="btn-history-search" class="btn btn-primary"
+                                    style="min-width: 80px;">Cari</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Chart Card -->
+        <div class="card chart-card mt-3" style="position: relative;">
+            <div class="chart-header-row">
+                <h3 class="bar-card-title"><span class="bar-title-accent"></span> History Chart (FFT Peaks)</h3>
+                <div class="chart-actions">
+                    <span id="history-record-count" style="font-size: 12px; color: #64748b; margin-right: 10px;">— Belum
+                        ada data —</span>
+                    <button class="icon-btn" onclick="captureAccKdiHistory()" title="Capture Image (PNG)"
+                        style="font-size: 16px; color: #64748b; background: none; border: none; cursor: pointer;">
+                        <i class="fa-solid fa-camera"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="history-chart" style="width: 100%; height: 400px;"></div>
+
+            <!-- History Chart Legend (9 items: f1/f2/f3 × X/Y/Z) -->
+            <div class="chart-legend" id="acc-kdi-history-legend"
+                style="padding: 10px 16px; display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 20px; border-top: 1px solid #f1f5f9;">
+                <!-- X Axis -->
+                <span class="legend-item" id="legend-hist-x1"
+                    style="cursor:pointer;font-size:12px;font-weight:600;color:#64748b;display:inline-flex;align-items:center;gap:5px;">
+                    <span
+                        style="display:inline-block;width:16px;height:3px;background:#ef4444;vertical-align:middle;"></span>X
+                    f1
+                </span>
+                <span class="legend-item" id="legend-hist-x2"
+                    style="cursor:pointer;font-size:12px;font-weight:600;color:#64748b;display:inline-flex;align-items:center;gap:5px;">
+                    <span
+                        style="display:inline-block;width:16px;height:3px;background:#fb923c;vertical-align:middle;"></span>X
+                    f2
+                </span>
+                <span class="legend-item" id="legend-hist-x3"
+                    style="cursor:pointer;font-size:12px;font-weight:600;color:#64748b;display:inline-flex;align-items:center;gap:5px;">
+                    <span
+                        style="display:inline-block;width:16px;height:3px;background:#fbbf24;vertical-align:middle;"></span>X
+                    f3
+                </span>
+                <span style="width:1px;height:20px;background:#e2e8f0;display:inline-block;"></span>
+                <!-- Y Axis -->
+                <span class="legend-item" id="legend-hist-y1"
+                    style="cursor:pointer;font-size:12px;font-weight:600;color:#64748b;display:inline-flex;align-items:center;gap:5px;">
+                    <span
+                        style="display:inline-block;width:16px;height:3px;background:#6b8ef5;vertical-align:middle;"></span>Y
+                    f1
+                </span>
+                <span class="legend-item" id="legend-hist-y2"
+                    style="cursor:pointer;font-size:12px;font-weight:600;color:#64748b;display:inline-flex;align-items:center;gap:5px;">
+                    <span
+                        style="display:inline-block;width:16px;height:3px;background:#93c5fd;vertical-align:middle;"></span>Y
+                    f2
+                </span>
+                <span class="legend-item" id="legend-hist-y3"
+                    style="cursor:pointer;font-size:12px;font-weight:600;color:#64748b;display:inline-flex;align-items:center;gap:5px;">
+                    <span
+                        style="display:inline-block;width:16px;height:3px;background:#bfdbfe;vertical-align:middle;"></span>Y
+                    f3
+                </span>
+                <span style="width:1px;height:20px;background:#e2e8f0;display:inline-block;"></span>
+                <!-- Z Axis -->
+                <span class="legend-item" id="legend-hist-z1"
+                    style="cursor:pointer;font-size:12px;font-weight:600;color:#64748b;display:inline-flex;align-items:center;gap:5px;">
+                    <span
+                        style="display:inline-block;width:16px;height:3px;background:#22c55e;vertical-align:middle;"></span>Z
+                    f1
+                </span>
+                <span class="legend-item" id="legend-hist-z2"
+                    style="cursor:pointer;font-size:12px;font-weight:600;color:#64748b;display:inline-flex;align-items:center;gap:5px;">
+                    <span
+                        style="display:inline-block;width:16px;height:3px;background:#4ade80;vertical-align:middle;"></span>Z
+                    f2
+                </span>
+                <span class="legend-item" id="legend-hist-z3"
+                    style="cursor:pointer;font-size:12px;font-weight:600;color:#64748b;display:inline-flex;align-items:center;gap:5px;">
+                    <span
+                        style="display:inline-block;width:16px;height:3px;background:#86efac;vertical-align:middle;"></span>Z
+                    f3
+                </span>
+            </div>
+        </div>
+
+        <!-- Data Table Card -->
+        <div class="card datatable-card mt-3">
+            <div class="datatable-header">
+                <h3>Detail Data (acc_fft_history)</h3>
+            </div>
+            <div class="table-wrapper" style="overflow-x: auto;">
+                <table class="data-table" id="history-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">Datetime</th>
+                            <th rowspan="2">Sensor ID</th>
+                            <th colspan="6" style="text-align: center; border-bottom: 1px solid #e2e8f0;">X-Axis</th>
+                            <th colspan="6" style="text-align: center; border-bottom: 1px solid #e2e8f0;">Y-Axis</th>
+                            <th colspan="6" style="text-align: center; border-bottom: 1px solid #e2e8f0;">Z-Axis</th>
+                            <th rowspan="2">File</th>
+                        </tr>
+                        <tr>
+                            <th>f1 (Hz)</th>
+                            <th>m1</th>
+                            <th>f2 (Hz)</th>
+                            <th>m2</th>
+                            <th>f3 (Hz)</th>
+                            <th>m3</th>
+                            <th>f1 (Hz)</th>
+                            <th>m1</th>
+                            <th>f2 (Hz)</th>
+                            <th>m2</th>
+                            <th>f3 (Hz)</th>
+                            <th>m3</th>
+                            <th>f1 (Hz)</th>
+                            <th>m1</th>
+                            <th>f2 (Hz)</th>
+                            <th>m2</th>
+                            <th>f3 (Hz)</th>
+                            <th>m3</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <tr>
+                            <td colspan="21" style="text-align:center; padding: 40px; color: #94a3b8;">Pilih tanggal dan
+                                klik Cari</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div><!-- End Tab Content: History Data -->
+
+
+    <script>
+        window.ACC_ID = "{{ sensor_id }}";
+        window.CURRENT_SENSOR_ID = "{{ sensor_sn }}";
+    </script>
+    <script src="{{ url_for('static', filename='js/acc_kdi.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/acc_kdi_stats.js') }}"></script>
+
+    {% endblock %}

@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Inject sensor_id from Flask into JS -->
+<script>
+    const SENSOR_ID = "{{ sensor_id }}";
+</script>
+
+<!-- Page Header -->
+<div class="page-header-row">
+    <h2 class="page-title">ATRH Sensor – <span style="color: var(--primary);">{{ sensor_id | upper if sensor_id else
+            'N/A' }}</span></h2>
+</div>
+
+<!-- Tabs -->
+<div class="tab-bar">
+    <button class="tab-btn active" data-tab="realtime">Real-Time</button>
+    <button class="tab-btn" data-tab="statistik">Statistik</button>
+    <div class="tab-indicator"></div>
+</div>
+
+<!-- Tab Content: Real-Time -->
+<div id="tab-realtime" class="tab-content active">
+
+    <!-- Chart Card -->
+    <div class="card chart-card" id="atrhCardArea" style="position: relative;">
+        <div class="chart-header-row">
+            <h3 class="bar-card-title"><span class="bar-title-accent"></span> Graph Real-Time Data</h3>
+            <div class="chart-actions">
+                <button id="btn-toggle-stream" class="btn-stop">Stop</button>
+                <button class="icon-btn" onclick="captureATRH()" title="Capture and Save Image (PNG)"
+                    style="font-size: 16px; color: #64748b; background: none; border: none; cursor: pointer;">
+                    <i class="fa-solid fa-camera"></i>
+                </button>
+            </div>
+        </div>
+        <div id="atrh-chart" style="width: 100%; height: 400px;"></div>
+
+        <!-- Legend -->
+        <div class="chart-legend">
+            <span class="legend-item" id="legend-temp" style="cursor: pointer;"><span class="legend-line"
+                    style="background: #3b82f6;"></span> Temperature</span>
+            <span class="legend-item" id="legend-rh" style="cursor: pointer;"><span class="legend-line"
+                    style="background: #f59e0b;"></span> Humidity</span>
+        </div>
+
+        <!-- Summary Bars -->
+        <div class="summary-bars">
+            <div class="summary-bar orange">
+                <span id="summary-temp">--</span>
+            </div>
+            <div class="summary-bar red">
+                <span id="summary-rh">--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="card datatable-card">
+        <div class="datatable-header">
+            <h3>Datatabel</h3>
+            <div class="export-actions">
+                <button class="btn-export" id="btn-export-pdf">Export to PDF</button>
+                <button class="btn-export" id="btn-export-csv">Export to CSV</button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th data-sort="time" class="sortable-header" style="cursor: pointer;">Datetime <span
+                                class="sort-icon">▼</span></th>
+                        <th data-sort="temperature" class="sortable-header" style="cursor: pointer;">Temperature (°C)
+                            <span class="sort-icon"></span>
+                        </th>
+                        <th data-sort="humidity" class="sortable-header" style="cursor: pointer;">Humidity (%) <span
+                                class="sort-icon"></span></th>
+                        <th data-sort="sensor_id" class="sortable-header" style="cursor: pointer;">Sensor ID <span
+                                class="sort-icon"></span></th>
+                    </tr>
+                </thead>
+                <tbody id="atrh-table-body">
+                    <!-- Dynamic rows -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Tab Content: Statistik -->
+<div id="tab-statistik" class="tab-content">
+    <!-- Search Statistic Card -->
+    <div class="mb-3 card search-card">
+        <div class="chart-header-row">
+            <h3 class="bar-card-title"><span class="bar-title-accent"></span>Search Statistic</h3>
+        </div>
+        <div class="bg-body-tertiary card-body">
+            <!-- Row 1: Metadata -->
+            <div class="mb-3 row">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text" style="width: 90px;">Tahun</span>
+                        <select id="select-stat-year" class="form-select">
+                            <option value="" disabled selected>Pilih Tahun</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text" style="width: 90px;">Bulan</span>
+                        <select id="select-stat-month" class="form-select">
+                            <option value="" disabled selected>Pilih Bulan</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text" style="width: 110px;">Mingguan</span>
+                        <select id="select-stat-week" class="form-select">
+                            <option value="" disabled selected>Pilih Periode</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2 & 3: Parameters and Actions -->
+            <div class="row">
+                <!-- Left Column: Date Range -->
+                <div class="col-md-6 border-end border-dark">
+                    <div class="d-flex flex-column h-100 justify-content-between">
+                        <div class="mb-2 input-group">
+                            <span class="input-group-text" style="width: 90px;">Dari</span>
+                            <input type="text" id="input-stat-start" class="form-control" readonly placeholder="Dari">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text" style="width: 90px;">Sampai</span>
+                            <input type="text" id="input-stat-end" class="form-control" readonly placeholder="Sampai">
+                        </div>
+
+                    </div>
+                </div>
+                <!-- Right Column: Option and Buttons -->
+                <div class="col-md-6">
+                    <div class="d-flex flex-column h-100 justify-content-between">
+                        <div class="mb-2 input-group">
+                            <span class="input-group-text" style="width: 90px;">Option</span>
+                            <select id="select-stat-option" class="form-select">
+                                <option value="semua">Semua</option>
+                                <option value="temp">Temperature</option>
+                                <option value="rh">Humidity</option>
+                            </select>
+                        </div>
+                        <div class="d-flex justify-content-end" style="gap: 15px;">
+                            <button id="btn-stat-help" class="btn btn-primary" style="min-width: 80px;">Help</button>
+                            <button id="btn-stat-search" class="btn btn-primary" style="min-width: 80px;">Cari</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistik Chart Card -->
+    <div class="card chart-card mt-3" id="atrhStatistikCardArea" style="position: relative;">
+        <div class="chart-header-row">
+            <h3 class="bar-card-title"><span class="bar-title-accent"></span> Statistik Chart (10 Menit)</h3>
+            <div class="chart-actions">
+                <button class="icon-btn" onclick="captureATRHStatistik()" title="Capture and Save Image (PNG)"
+                    style="font-size: 16px; color: #64748b; background: none; border: none; cursor: pointer;">
+                    <i class="fa-solid fa-camera"></i>
+                </button>
+            </div>
+        </div>
+        <div id="atrh-stat-chart" style="width: 100%; height: 400px;"></div>
+
+        <!-- Legend -->
+        <div class="chart-legend" id="atrh-statistik-legend"
+            style="padding: 10px; display: none; flex-wrap: wrap; gap: 15px; border-top: 1px solid #f1f5f9;">
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <span class="legend-item" id="legend-stat-avg-temp" style="cursor: pointer; font-size: 12px;"><span
+                        class="legend-line" style="background: #3b82f6;"></span> Avg Temp</span>
+                <span class="legend-item" id="legend-stat-max-temp" style="cursor: pointer; font-size: 12px;"><span
+                        class="legend-line" style="background: #ef4444;"></span> Max Temp</span>
+                <span class="legend-item" id="legend-stat-min-temp" style="cursor: pointer; font-size: 12px;"><span
+                        class="legend-line" style="background: #10b981;"></span> Min Temp</span>
+            </div>
+            <div style="width: 1px; height: 20px; background: #e2e8f0; margin: 0 5px;"></div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <span class="legend-item" id="legend-stat-avg-rh" style="cursor: pointer; font-size: 12px;"><span
+                        class="legend-line" style="background: #f59e0b;"></span> Avg RH</span>
+                <span class="legend-item" id="legend-stat-max-rh" style="cursor: pointer; font-size: 12px;"><span
+                        class="legend-line" style="background: #10b981;"></span> Max RH</span>
+                <span class="legend-item" id="legend-stat-min-rh" style="cursor: pointer; font-size: 12px;"><span
+                        class="legend-line" style="background: #ec4899;"></span> Min RH</span>
+            </div>
+        </div>
+
+        <!-- Summary Area -->
+        <div class="summary-stats-bar" id="atrh-statistik-summary"
+            style="display: none; gap: 20px; padding: 10px 15px; background: #f8fafc; border-top: 1px solid #f1f5f9;">
+            <div class="stat-summary-box">
+                <div
+                    style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase;">
+                    Temperature (°C)</div>
+                <div style="display: flex; gap: 12px; font-size: 13px;">
+                    <span>Min: <b id="stat-summary-min-temp" style="color: #10b981;">--</b></span>
+                    <span>Max: <b id="stat-summary-max-temp" style="color: #ef4444;">--</b></span>
+                    <span>Avg: <b id="stat-summary-avg-temp" style="color: #3b82f6;">--</b></span>
+                </div>
+            </div>
+            <div style="width: 1px; height: 35px; background: #e2e8f0;"></div>
+            <div class="stat-summary-box">
+                <div
+                    style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase;">
+                    Humidity (%)</div>
+                <div style="display: flex; gap: 12px; font-size: 13px;">
+                    <span>Min: <b id="stat-summary-min-rh" style="color: #ec4899;">--</b></span>
+                    <span>Max: <b id="stat-summary-max-rh" style="color: #10b981;">--</b></span>
+                    <span>Avg: <b id="stat-summary-avg-rh" style="color: #f59e0b;">--</b></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="card datatable-card mt-3">
+        <div class="datatable-header">
+            <h3>Datatabel Statistik</h3>
+            <div class="export-actions">
+                <button class="btn-export" id="btn-export-pdf-stat">Export to PDF</button>
+                <button class="btn-export" id="btn-export-csv-stat">Export to CSV</button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Datetime ▼</th>
+                        <th>Sensor ID</th>
+                        <th>Min Temp (°C)</th>
+                        <th>Max Temp (°C)</th>
+                        <th>Avg Temp (°C)</th>
+                        <th>Min RH (%)</th>
+                        <th>Max RH (%)</th>
+                        <th>Avg RH (%)</th>
+                    </tr>
+                </thead>
+                <tbody id="atrh-statistik-table-body">
+                    <!-- Dynamic rows -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/atrh.js') }}?v=1.1"></script>
+
+{% endblock %}

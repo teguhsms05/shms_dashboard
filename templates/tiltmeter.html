@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Inject sensor_id from Flask into JS -->
+<script>
+    const SENSOR_ID = "{{ sensor_id }}";
+</script>
+<!-- Page Header -->
+<div class="page-header-row">
+    <h2 class="page-title">Tiltmeter – <span style="color: var(--primary);">{{ sensor_id | upper if sensor_id
+            else 'N/A' }}</span></h2>
+</div>
+
+<!-- Tabs -->
+<div class="tab-bar">
+    <button class="tab-btn active" data-tab="realtime">Real-Time</button>
+    <button class="tab-btn" data-tab="statistik">Statistik</button>
+    <div class="tab-indicator"></div>
+</div>
+
+<!-- Tab Content: Real-Time -->
+<div id="tab-realtime" class="tab-content active">
+
+    <!-- KPI Cards (Top Summary) -->
+    <!-- <div class="summary-bars" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 20px;">
+        <div class="summary-bar" style="background: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6;">
+            <div style="color: #3b82f6; font-size: 14px; font-weight: 600;">Angle X</div>
+            <span id="summary-anglex" style="color: var(--text-color); font-size: 24px; font-weight: bold;">--</span>
+        </div>
+        <div class="summary-bar" style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981;">
+            <div style="color: #10b981; font-size: 14px; font-weight: 600;">Angle Y</div>
+            <span id="summary-angley" style="color: var(--text-color); font-size: 24px; font-weight: bold;">--</span>
+        </div>
+    </div> -->
+
+    <!-- Chart Card: Angle X and Angle Y -->
+    <div class="card chart-card" id="tiltmeterCardArea" style="position: relative;">
+        <div class="chart-header-row">
+            <h3 class="bar-card-title"><span class="bar-title-accent"></span> Tilt Angle (X & Y)</h3>
+            <div class="chart-actions">
+                <button id="btn-toggle-stream" class="btn-stop">Stop</button>
+                <button class="icon-btn" onclick="captureTilt()" title="Capture and Save Image (PNG)"
+                    style="font-size: 16px; color: #64748b; background: none; border: none; cursor: pointer;">
+                    <i class="fa-solid fa-camera"></i>
+                </button>
+            </div>
+        </div>
+        <div id="tilt-angle-chart" style="width: 100%; height: 350px;"></div>
+
+        <div class="chart-legend">
+            <span class="legend-item" id="legend-anglex" style="cursor: pointer;">
+                <span class="legend-line" style="background: #3b82f6;"></span> Angle X (°)
+            </span>
+            <span class="legend-item" id="legend-angley" style="cursor: pointer;">
+                <span class="legend-line" style="background: #10b981;"></span> Angle Y (°)
+            </span>
+        </div>
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="card datatable-card" style="margin-top: 20px;">
+        <div class="datatable-header">
+            <h3>Datatabel – {{ sensor_id | upper if sensor_id else '' }}</h3>
+            <div class="export-actions">
+                <button class="btn-export" id="btn-export-pdf">Export to PDF</button>
+                <button class="btn-export" id="btn-export-csv">Export to CSV</button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Datetime ▼</th>
+                        <th>Angle X (°)</th>
+                        <th>Angle Y (°)</th>
+                        <th>Sensor ID</th>
+                    </tr>
+                </thead>
+                <tbody id="tilt-table-body">
+                    <!-- Dynamic rows -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Tab Content: Statistik -->
+<div id="tab-statistik" class="tab-content">
+    <!-- Search Statistic Card -->
+    <div class="mb-3 card search-card">
+        <div class="chart-header-row">
+            <h3 class="bar-card-title"><span class="bar-title-accent"></span> Search Statistic</h3>
+        </div>
+        <div class="bg-body-tertiary card-body">
+            <!-- Row 1: Metadata -->
+            <div class="mb-3 row">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text" style="width: 90px;">Tahun</span>
+                        <select id="select-stat-year" class="form-select">
+                            <option value="" disabled selected>Pilih Tahun</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text" style="width: 90px;">Bulan</span>
+                        <select id="select-stat-month" class="form-select">
+                            <option value="" disabled selected>Pilih Bulan</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text" style="width: 110px;">Mingguan</span>
+                        <select id="select-stat-week" class="form-select">
+                            <option value="" disabled selected>Pilih Periode</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2 & 3: Parameters and Actions -->
+            <div class="row">
+                <!-- Left Column: Date Range -->
+                <div class="col-md-6 border-end border-dark">
+                    <div class="d-flex flex-column h-100 justify-content-between">
+                        <div class="mb-2 input-group">
+                            <span class="input-group-text" style="width: 90px;">Dari</span>
+                            <input type="text" id="input-stat-start" class="form-control" readonly placeholder="Dari">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text" style="width: 90px;">Sampai</span>
+                            <input type="text" id="input-stat-end" class="form-control" readonly placeholder="Sampai">
+                        </div>
+
+                    </div>
+                </div>
+                <!-- Right Column: Option and Buttons -->
+                <div class="col-md-6">
+                    <div class="d-flex flex-column h-100 justify-content-between">
+                        <div class="mb-2 input-group">
+                            <span class="input-group-text" style="width: 90px;">Option</span>
+                            <select id="select-stat-option" class="form-select">
+                                <option value="semua">Semua</option>
+                                <option value="anglex">Angle X</option>
+                                <option value="angley">Angle Y</option>
+                            </select>
+                        </div>
+                        <div class="d-flex justify-content-end" style="gap: 15px;">
+                            <button id="btn-stat-help" class="btn btn-primary" style="min-width: 80px;">Help</button>
+                            <button id="btn-stat-search" class="btn btn-primary" style="min-width: 80px;">Cari</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistik Chart Card -->
+    <div class="card chart-card mt-3" id="tiltStatistikCardArea" style="position: relative;">
+        <div class="chart-header-row">
+            <h3 class="bar-card-title"><span class="bar-title-accent"></span> Statistik Chart (10 Menit)</h3>
+            <div class="chart-actions">
+                <button class="icon-btn" onclick="captureTiltStatistik()" title="Capture and Save Image (PNG)"
+                    style="font-size: 16px; color: #64748b; background: none; border: none; cursor: pointer;">
+                    <i class="fa-solid fa-camera"></i>
+                </button>
+            </div>
+        </div>
+        <div id="tilt-stat-chart" style="width: 100%; height: 400px;"></div>
+
+        <!-- Legend -->
+        <div class="chart-legend" id="tilt-statistik-legend"
+            style="padding: 10px; display: none; flex-wrap: wrap; gap: 15px; border-top: 1px solid #f1f5f9;">
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <span class="legend-item" id="legend-stat-avg-anglex" style="cursor: pointer; font-size: 12px;"><span
+                        class="legend-line" style="background: #3b82f6;"></span> Avg X</span>
+                <span class="legend-item" id="legend-stat-max-anglex" style="cursor: pointer; font-size: 12px;"><span
+                        class="legend-line" style="background: #ef4444;"></span> Max X</span>
+                <span class="legend-item" id="legend-stat-min-anglex" style="cursor: pointer; font-size: 12px;"><span
+                        class="legend-line" style="background: #10b981;"></span> Min X</span>
+            </div>
+            <div style="width: 1px; height: 20px; background: #e2e8f0; margin: 0 5px;"></div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <span class="legend-item" id="legend-stat-avg-angley" style="cursor: pointer; font-size: 12px;"><span
+                        class="legend-line" style="background: #10b981;"></span> Avg Y</span>
+                <span class="legend-item" id="legend-stat-max-angley" style="cursor: pointer; font-size: 12px;"><span
+                        class="legend-line" style="background: #f59e0b;"></span> Max Y</span>
+                <span class="legend-item" id="legend-stat-min-angley" style="cursor: pointer; font-size: 12px;"><span
+                        class="legend-line" style="background: #ec4899;"></span> Min Y</span>
+            </div>
+        </div>
+
+        <!-- Summary Area -->
+        <div class="summary-stats-bar" id="tilt-statistik-summary"
+            style="display: none; gap: 20px; padding: 10px 15px; background: #f8fafc; border-top: 1px solid #f1f5f9;">
+            <div class="stat-summary-box">
+                <div style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase;">
+                    Angle X (°)</div>
+                <div style="display: flex; gap: 12px; font-size: 13px;">
+                    <span>Min: <b id="stat-summary-min-anglex" style="color: #10b981;">--</b></span>
+                    <span>Max: <b id="stat-summary-max-anglex" style="color: #ef4444;">--</b></span>
+                    <span>Avg: <b id="stat-summary-avg-anglex" style="color: #3b82f6;">--</b></span>
+                </div>
+            </div>
+            <div style="width: 1px; height: 35px; background: #e2e8f0;"></div>
+            <div class="stat-summary-box">
+                <div style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase;">
+                    Angle Y (°)</div>
+                <div style="display: flex; gap: 12px; font-size: 13px;">
+                    <span>Min: <b id="stat-summary-min-angley" style="color: #ec4899;">--</b></span>
+                    <span>Max: <b id="stat-summary-max-angley" style="color: #10b981;">--</b></span>
+                    <span>Avg: <b id="stat-summary-avg-angley" style="color: #f59e0b;">--</b></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="card datatable-card mt-3">
+        <div class="datatable-header">
+            <h3>Datatabel Statistik</h3>
+            <div class="export-actions">
+                <button class="btn-export" id="btn-export-pdf-stat">Export to PDF</button>
+                <button class="btn-export" id="btn-export-csv-stat">Export to CSV</button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Datetime ▼</th>
+                        <th>Sensor ID</th>
+                        <th>Min X (°)</th>
+                        <th>Max X (°)</th>
+                        <th>Avg X (°)</th>
+                        <th>Min Y (°)</th>
+                        <th>Max Y (°)</th>
+                        <th>Avg Y (°)</th>
+                    </tr>
+                </thead>
+                <tbody id="tilt-statistik-table-body">
+                    <!-- Dynamic rows -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- amCharts (Core libraries are in base.html) -->
+<script src="{{ url_for('static', filename='js/tiltmeter.js') }}"></script>
+
+{% endblock %}

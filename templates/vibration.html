@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="vibration-container">
+    <!-- Header -->
+    <div class="vibration-header">
+        <h2 class="page-title">Accelerometer Sensor – <span style="color: var(--primary);">{{ sensor_id | upper if
+                sensor_id
+                else 'N/A' }}</span></h2>
+        <p>Real-time accelerometer monitoring for structural vibration analysis.</p>
+    </div>
+
+    <!-- Summary Row -->
+    <div class="vib-summary-row">
+        <div class="vib-summary-card">
+            <div class="vib-card-icon icon-blue"><i class="fa-solid fa-clock"></i></div>
+            <span class="label">Last Update</span>
+            <span class="value" id="card-last-update"
+                style="font-size: 1.6rem; font-weight: 800; color: var(--text-main); margin-top: 4px; display: inline-block;">--:--:--</span>
+        </div>
+
+        <div class="vib-summary-card" style="grid-column: span 2;">
+            <div class="vib-card-icon icon-purple"><i class="fa-solid fa-wave-square"></i></div>
+            <span class="label">Dominant Frequency</span>
+            <div class="dominant-content">
+                <div class="dominant-card dom-x">
+                    <span class="axis-label">X-AXIS</span>
+                    <span class="axis-val"><span id="summ-peak-x">--</span> <small>Hz</small></span>
+                </div>
+                <div class="dominant-card dom-y">
+                    <span class="axis-label">Y-AXIS</span>
+                    <span class="axis-val"><span id="summ-peak-y">--</span> <small>Hz</small></span>
+                </div>
+                <div class="dominant-card dom-z">
+                    <span class="axis-label">Z-AXIS</span>
+                    <span class="axis-val"><span id="summ-peak-z">--</span> <small>Hz</small></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="vib-summary-card">
+            <div class="vib-card-icon icon-green"><i class="fa-solid fa-link"></i></div>
+            <div class="label">
+                <span>Connection</span>
+                <i class="fa-solid fa-circle-info" id="btn-conn-info"
+                    style="cursor: pointer; font-size: 0.8rem; opacity: 0.6;"></i>
+            </div>
+
+            <div id="conn-info-popup"
+                style="display: none; position: absolute; top: 40px; right: 15px; background: var(--bg-card); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 100; font-size: 0.75rem; color: var(--text-main); width: 180px; line-height: 1.4;">
+                <div style="margin-bottom:4px;"><strong style="color:#22c55e;">Excellent:</strong> &lt; 20 ms</div>
+                <div style="margin-bottom:4px;"><strong style="color:#84cc16;">Very Good:</strong> 50 ms</div>
+                <div style="margin-bottom:4px;"><strong style="color:#ef4444;">Bad:</strong> &gt; 300 ms</div>
+            </div>
+
+            <div id="card-connection" class="status-offline"
+                style="display: flex; flex-direction: column; margin-top: 4px;">
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <span id="connection-dot" class="status-dot"
+                        style="width:10px; height:10px; border-radius:50%; background:#94a3b8; display:inline-block; box-shadow:none;"></span>
+                    <span id="connection-text"
+                        style="font-size: 1.6rem; font-weight: 800; color: var(--text-main);">Offline</span>
+                </div>
+                <span
+                    style="margin-left: 18px; font-size:0.75rem; color:var(--text-muted); font-weight: 500; margin-top: 4px;"
+                    id="connection-ms">Disconnected</span>
+            </div>
+        </div>
+
+        <div class="vib-summary-card">
+            <div class="vib-card-icon icon-orange"><i class="fa-solid fa-bell"></i></div>
+            <span class="label">Alert Level</span>
+            <div id="card-alert" style="display:flex; align-items:center; gap:6px; margin-top: 4px;">
+                <span id="alert-dot"
+                    style="width:10px; height:10px; border-radius:50%; background:#22c55e; display:inline-block; box-shadow:0 0 8px #22c55e;"></span>
+                <span id="alert-text"
+                    style="font-size: 1.6rem; font-weight: 800; color: var(--text-main);">Normal</span>
+            </div>
+            <span style="font-size:0.75rem; color:var(--text-muted); font-weight: 500;" id="alert-sub">SAFE
+                LIMITS</span>
+        </div>
+
+        <div class="vib-summary-card">
+            <div class="vib-card-icon icon-red"><i class="fa-solid fa-calendar-check"></i></div>
+            <span class="label">Event Count</span>
+            <span class="value" id="card-event-count"
+                style="font-size: 1.6rem; font-weight: 800; color: var(--text-main); margin-top: 4px; display: inline-block;">0</span>
+            <span style="font-size:0.75rem; color: var(--text-muted); font-weight: 500;">Active Session</span>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="vib-main-grid">
+        <!-- capture-zone: RT chart + FFT + side panel -->
+        <div id="capture-zone"
+            style="grid-column: span 4; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 0;">
+            <!-- Real-Time Chart -->
+            <div class="vib-card vib-chart-full" style="grid-column: span 4;">
+                <div class="vib-card-header">
+                    <h3>Graph Real-Time Data</h3>
+                    <div style="display: flex; gap: 20px; align-items: center;">
+                        <div class="vib-legend">
+                            <div class="legend-item" id="toggle-x" data-axis="x">
+                                <span class="dot" style="background: #ef4444;"></span> X-Axis
+                            </div>
+                            <div class="legend-item" id="toggle-y" data-axis="y">
+                                <span class="dot" style="background: #22c55e;"></span> Y-Axis
+                            </div>
+                            <div class="legend-item" id="toggle-z" data-axis="z">
+                                <span class="dot" style="background: #3b82f6;"></span> Z-Axis
+                            </div>
+                        </div>
+                        <div class="vib-controls">
+                            <button class="vib-btn mode-btn" data-mode="raw">Raw</button>
+                            <button class="vib-btn mode-btn active" data-mode="bandpass">Bandpass</button>
+                            <span
+                                style="width: 1px; height: 16px; background: var(--border-color); margin: 0 4px;"></span>
+                            <button class="vib-btn" id="btn-stop-start" style="background:#22c55e; border-color:#22c55e; color: var(--text-button);">Start</button>
+                            <button class="vib-btn-icon" id="btn-screenshot" title="Take Screenshot">
+                                <i class="fa-solid fa-camera"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="realtime-chart" class="chart-box"></div>
+            </div>
+
+            <!-- FFT and Right Panel -->
+            <div class="vib-card vib-chart-left">
+                <div class="vib-card-header">
+                    <h3>Graph FFT</h3>
+                    <div class="fft-controls">
+                        <button class="fft-toggle active" data-axis="x">FFT X</button>
+                        <button class="fft-toggle" data-axis="y">FFT Y</button>
+                        <button class="fft-toggle" data-axis="z">FFT Z</button>
+                    </div>
+                </div>
+                <div id="fft-chart" class="chart-box"></div>
+            </div>
+
+            <!-- Right Stack: Peak Summary & Monitoring Info -->
+            <div class="vib-side-stack">
+                <!-- Peak Summary -->
+                <div class="vib-card">
+                    <div class="vib-card-header">
+                        <h3>Peak Summary</h3>
+                    </div>
+                    <table class="vib-table">
+                        <thead>
+                            <tr>
+                                <th>Axis</th>
+                                <th>Peak</th>
+                                <th>Mag</th>
+                            </tr>
+                        </thead>
+                        <tbody id="peak-summary-body">
+                            <tr>
+                                <td>X</td>
+                                <td><span class="peak-value" id="peak-x-freq">--</span> Hz</td>
+                                <td id="peak-x-mag">--</td>
+                            </tr>
+                            <tr>
+                                <td>Y</td>
+                                <td><span class="peak-value" id="peak-y-freq">--</span> Hz</td>
+                                <td id="peak-y-mag">--</td>
+                            </tr>
+                            <tr>
+                                <td>Z</td>
+                                <td><span class="peak-value" id="peak-z-freq">--</span> Hz</td>
+                                <td id="peak-z-mag">--</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Monitoring Info -->
+                <div class="vib-card">
+                    <div class="vib-card-header">
+                        <h3>Monitoring Info</h3>
+                    </div>
+                    <ul class="info-list">
+                        <li class="info-item">
+                            <span class="info-label">Sampling</span>
+                            <span class="info-val">100 Hz</span>
+                        </li>
+                        <li class="info-item">
+                            <span class="info-label">Window</span>
+                            <select id="select-data-window" class="info-select">
+                                <option value="1024">1024</option>
+                                <option value="2048" selected>2048</option>
+                                <option value="4096">4096</option>
+                            </select>
+                        </li>
+                        <li class="info-item" style="border-bottom: none;">
+                            <span class="info-label">Filter</span>
+                            <select id="select-filter-type" class="info-select">
+                                <option value="raw">Raw</option>
+                                <option value="bandpass" selected>Bandpass (0.1–20 Hz)</option>
+                                <option value="highpass">Highpass (> 0.5 Hz)</option>
+                                <option value="lowpass">Lowpass (< 5 Hz)</option>
+                            </select>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div><!-- end capture-zone -->
+
+        <!-- Real-time Snapshot Table -->
+        <div class="vib-card vib-chart-full">
+            <div class="vib-card-header">
+                <h3>Real-time Snapshot Table</h3>
+            </div>
+            <div class="table-wrapper">
+                <table class="vib-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>X (m/s²)</th>
+                            <th>Y (m/s²)</th>
+                            <th>Z (m/s²)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="snapshot-table-body">
+                        <!-- Rows injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/vibration.js') }}"></script>
+{% endblock %}

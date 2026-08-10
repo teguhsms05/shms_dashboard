@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Inject sensor_id from Flask into JS -->
+<script>
+    const SENSOR_ID = "{{ sensor_id }}";
+</script>
+
+<!-- Page Header -->
+<div class="page-header-row">
+    <h2 class="page-title">Anemometer 2D Sensor – <span style="color: var(--primary);">{{ sensor_id | upper if sensor_id
+            else
+            'N/A' }}</span></h2>
+</div>
+
+<!-- Tabs -->
+<div class="tab-bar">
+    <button class="tab-btn active" data-tab="realtime">Real-Time</button>
+    <button class="tab-btn" data-tab="statistik">Statistik</button>
+    <div class="tab-indicator"></div>
+</div>
+
+<!-- Tab Content: Real-Time -->
+<div id="tab-realtime" class="tab-content active">
+
+    <!-- Chart Card -->
+    <div class="card chart-card" id="anm2dCardArea" style="position: relative;">
+        <div class="chart-header-row">
+            <h3 class="bar-card-title"><span class="bar-title-accent"></span> Graph Real-Time Data</h3>
+            <div class="chart-actions">
+                <button id="btn-toggle-stream" class="btn-stop">Stop</button>
+                <button class="icon-btn" onclick="captureAnm2D()" title="Capture and Save Image (PNG)"
+                    style="font-size: 16px; color: #64748b; background: none; border: none; cursor: pointer;">
+                    <i class="fa-solid fa-camera"></i>
+                </button>
+            </div>
+        </div>
+        <div id="anm2d-chart" style="width: 100%; height: 400px;"></div>
+
+        <!-- Legend -->
+        <div class="chart-legend">
+            <span class="legend-item" id="legend-speed" style="cursor: pointer;"><span class="legend-line"
+                    style="background: #3b82f6;"></span> Wind Speed</span>
+            <span class="legend-item" id="legend-direction" style="cursor: pointer;"><span class="legend-line"
+                    style="background: #83B366;"></span> Wind Direction</span>
+        </div>
+
+        <!-- Summary Bars -->
+        <!-- <div class="summary-bars">
+            <div class="summary-bar orange">
+                <span id="summary-wind-speed">--</span>
+            </div>
+            <div class="summary-bar red">
+                <span id="summary-wind-direction">--</span>
+            </div>
+        </div> -->
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="card datatable-card">
+        <div class="datatable-header">
+            <h3>Datatabel</h3>
+            <div class="export-actions">
+                <button class="btn-export" id="btn-export-pdf">Export to PDF</button>
+                <button class="btn-export" id="btn-export-csv">Export to CSV</button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th data-sort="time" class="sortable-header" style="cursor: pointer;">Datetime <span
+                                class="sort-icon">▼</span></th>
+                        <th data-sort="wind_speed" class="sortable-header" style="cursor: pointer;">Wind Speed (m/s)
+                            <span class="sort-icon"></span>
+                        </th>
+                        <th data-sort="wind_direction" class="sortable-header" style="cursor: pointer;">Wind Direction
+                            (°) <span class="sort-icon"></span></th>
+                        <th data-sort="sensor_id" class="sortable-header" style="cursor: pointer;">Sensor ID <span
+                                class="sort-icon"></span></th>
+                    </tr>
+                </thead>
+                <tbody id="anm2d-table-body">
+                    <!-- Dynamic rows -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Tab Content: Statistik -->
+<div id="tab-statistik" class="tab-content">
+
+    <!-- Search Statistic Card -->
+    <div class="mb-3 card search-card">
+        <div class="chart-header-row">
+            <h3 class="bar-card-title"><span class="bar-title-accent"></span>Search Statistic</h3>
+        </div>
+        <!-- Row 1: Metadata -->
+        <div class="mb-3 row">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text" style="width: 90px;">Tahun</span>
+                    <select id="select-stat-year" class="form-select">
+                        <option value="" selected>Pilih Tahun</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text" style="width: 90px;">Bulan</span>
+                    <select id="select-stat-month" class="form-select">
+                        <option value="" elected>Pilih Bulan</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text" style="width: 110px;">Mingguan</span>
+                    <select id="select-stat-week" class="form-select">
+                        <option value="" selected>Pilih Periode</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2 & 3: Parameters and Actions -->
+        <div class="row">
+            <!-- Left Column: Date Range -->
+            <div class="col-md-6">
+                <div class="mb-2 input-group">
+                    <span class="input-group-text" style="width: 90px;">Dari</span>
+                    <input type="text" id="input-stat-start" class="form-control" readonly placeholder="Dari">
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text" style="width: 90px;">Sampai</span>
+                    <input type="text" id="input-stat-end" class="form-control" readonly placeholder="Sampai">
+                </div>
+            </div>
+
+            <!-- Right Column: Option and Buttons -->
+            <div class="col-md-6 d-flex flex-column justify-content-between">
+                <div class="mb-2 input-group">
+                    <span class="input-group-text" style="width: 90px;">Option</span>
+                    <select id="select-stat-option" class="form-select">
+                        <option value="semua">Semua</option>
+                        <option value="ws">Wind Speed</option>
+                        <option value="wd">Wind Direction</option>
+                    </select>
+                </div>
+                <div class="d-flex justify-content-end" style="gap: 15px;">
+                    <button class="btn btn-primary" id="btn-stat-help" style="min-width: 80px;">Help</button>
+                    <button class="btn btn-primary" id="btn-stat-search" style="min-width: 80px;">Cari</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Card -->
+    <div class="card chart-card" id="anm2dStatistikCardArea" style="position: relative;">
+        <div class="chart-header-row">
+            <h3 class="bar-card-title"><span class="bar-title-accent"></span> Statistik Chart (10 Menit)</h3>
+            <div class="chart-actions">
+                <button class="icon-btn" onclick="captureAnm2DStatistik()" title="Capture and Save Image (PNG)"
+                    style="font-size: 16px; color: #64748b; background: none; border: none; cursor: pointer;">
+                    <i class="fa-solid fa-camera"></i>
+                </button>
+            </div>
+        </div>
+        <div id="anm2d-stat-chart" style="width: 100%; height: 400px;"></div>
+
+        <!-- Legend -->
+        <div class="chart-legend" id="anm2d-statistik-legend"
+            style="padding: 10px; display: none; flex-wrap: wrap; gap: 15px; border-top: 1px solid #f1f5f9;">
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <span class="legend-item" id="legend-stat-avg-speed" style="cursor: pointer; font-size: 12px;"><span
+                        class="legend-line" style="background: #3b82f6;"></span> Avg WS</span>
+                <span class="legend-item" id="legend-stat-max-speed" style="cursor: pointer; font-size: 12px;"><span
+                        class="legend-line" style="background: #ef4444;"></span> Max WS</span>
+                <span class="legend-item" id="legend-stat-min-speed" style="cursor: pointer; font-size: 12px;"><span
+                        class="legend-line" style="background: #10b981;"></span> Min WS</span>
+            </div>
+            <div style="width: 1px; height: 20px; background: #e2e8f0; margin: 0 5px;"></div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <span class="legend-item" id="legend-stat-avg-dir" style="cursor: pointer; font-size: 12px;"><span
+                        class="legend-line" style="background: #8b5cf6;"></span> Avg WD</span>
+                <span class="legend-item" id="legend-stat-max-dir" style="cursor: pointer; font-size: 12px;"><span
+                        class="legend-line" style="background: #10b981;"></span> Max WD</span>
+                <span class="legend-item" id="legend-stat-min-dir" style="cursor: pointer; font-size: 12px;"><span
+                        class="legend-line" style="background: #ec4899;"></span> Min WD</span>
+            </div>
+        </div>
+
+        <!-- Summary Area -->
+        <div class="summary-stats-bar" id="anm2d-statistik-summary"
+            style="display: none; gap: 20px; padding: 10px 15px; background: #f8fafc; border-top: 1px solid #f1f5f9;">
+            <div class="stat-summary-box">
+                <div
+                    style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase;">
+                    Wind Speed (m/s)</div>
+                <div style="display: flex; gap: 12px; font-size: 13px;">
+                    <span>Min: <b id="stat-summary-min-speed" style="color: #10b981;">--</b></span>
+                    <span>Max: <b id="stat-summary-max-speed" style="color: #ef4444;">--</b></span>
+                    <span>Avg: <b id="stat-summary-avg-speed" style="color: #3b82f6;">--</b></span>
+                </div>
+            </div>
+            <div style="width: 1px; height: 35px; background: #e2e8f0;"></div>
+            <div class="stat-summary-box">
+                <div
+                    style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase;">
+                    Direction (°)</div>
+                <div style="display: flex; gap: 12px; font-size: 13px;">
+                    <span>Min: <b id="stat-summary-min-direction" style="color: #ec4899;">--</b></span>
+                    <span>Max: <b id="stat-summary-max-direction" style="color: #10b981;">--</b></span>
+                    <span>Avg: <b id="stat-summary-avg-direction" style="color: #8b5cf6;">--</b></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="card datatable-card">
+        <div class="datatable-header">
+            <h3>Statistik (10 Menit)</h3>
+            <div class="export-actions">
+                <button class="btn-export" id="btn-export-statistik-pdf">Export to PDF</button>
+                <button class="btn-export" id="btn-export-statistik-csv">Export to CSV</button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th rowspan="2" class="sortable" data-col="0" data-type="date">Datetime <span
+                                class="sort-icon"></span></th>
+                        <th rowspan="2" class="sortable" data-col="1" data-type="string">Sensor ID <span
+                                class="sort-icon"></span></th>
+                        <th colspan="3" style="text-align: center;">Wind Speed (m/s)</th>
+                        <th colspan="3" style="text-align: center;">Wind Direction (°)</th>
+                    </tr>
+                    <tr>
+                        <th class="sortable" data-col="2" data-type="number">Min <span class="sort-icon"></span></th>
+                        <th class="sortable" data-col="3" data-type="number">Max <span class="sort-icon"></span></th>
+                        <th class="sortable" data-col="4" data-type="number">Avg <span class="sort-icon"></span></th>
+                        <th class="sortable" data-col="5" data-type="number">Min <span class="sort-icon"></span></th>
+                        <th class="sortable" data-col="6" data-type="number">Max <span class="sort-icon"></span></th>
+                        <th class="sortable" data-col="7" data-type="number">Avg <span class="sort-icon"></span></th>
+                    </tr>
+                </thead>
+                <tbody id="anm2d-statistik-table-body">
+                    <!-- Dynamic rows -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/anm2d.js') }}?v=1.1" defer></script>
+
+{% endblock %}

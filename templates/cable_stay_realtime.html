@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cs_realtime.css') }}">
+<div class="page-header">
+    <div class="page-header-row">
+        <h2 class="page-title">Cable Stay Monitor</h2>
+    </div>
+</div>
+
+<div class="cable-stay-container">
+    <div class="card cable-monitor-card" id="cableRealtimeCardArea" style="position: relative;">
+        <div class="card-header deck-header">
+            <h3 class="bar-card-title"><span class="bar-title-accent"></span> Cable Real-time Monitoring</h3>
+            <div class="chart-actions" style="display: flex; gap: 10px; align-items: center;">
+                <div class="toggle-group">
+                    <button class="btn-toggle active" data-unit="force">
+                        <i class="fas fa-layer-group"></i> Cable Force [kN]
+                    </button>
+                    <button class="btn-toggle" data-unit="stress">
+                        <i class="fas fa-chart-line"></i> Cable Stress [MPa]
+                    </button>
+                </div>
+                <button class="icon-btn" onclick="captureCableRealtime()" title="Capture and Save Image (PNG)"
+                    style="font-size: 16px; color: #64748b; background: none; border: none; cursor: pointer; margin-left: 10px;">
+                    <i class="fa-solid fa-camera"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="deck-view">
+                <div class="teluk-luar-label">Teluk Luar</div>
+                <div class="bridge-structure">
+                    <div class="side top-side" id="top-cables">
+                        <!-- North side cables -->
+                    </div>
+                    <img src="{{ url_for('static', filename='assets/top_view_bridge.png') }}" class="bridge-image"
+                        alt="Bridge Top View">
+                    <div class="side bottom-side" id="bottom-cables">
+                        <!-- South side cables -->
+                    </div>
+                </div>
+                <div class="teluk-dalam-label">Teluk Dalam</div>
+                <div class="direction-labels">
+                    <span class="dir-south">South</span>
+                    <span class="dir-north">North</span>
+                </div>
+            </div>
+
+            <div class="chart-section" style="margin-top: 30px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+                <div id="cable-bar-chart" style="width: 100%; height: 500px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+
+</style>
+
+<script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+<script src="{{ url_for('static', filename='js/cable_stay_realtime.js') }}"></script>
+{% endblock %}

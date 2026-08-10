@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.05);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --accent-blue: #3b82f6;
+        --label-bg: rgba(59, 130, 246, 0.1);
+    }
+
+    .si-container { display: flex; flex-direction: column; gap: 20px; padding: 15px; }
+
+    .si-form {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        padding: 20px;
+    }
+    .si-form .input-group { width: 100%; }
+    .si-form .full-width { grid-column: 1 / -1; }
+
+    .form-actions {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 5px;
+    }
+
+    .btn-custom {
+        padding: 10px 30px; border-radius: 8px; font-weight: 600;
+        font-size: 0.95rem; cursor: pointer; transition: all 0.3s;
+        border: none; display: flex; align-items: center; gap: 10px;
+    }
+    .btn-primary { background: var(--accent-blue); color: #fff; }
+    .btn-primary:hover { background: #2563eb; box-shadow: 0 0 15px rgba(59,130,246,0.4); }
+    .btn-secondary { background: #475569; color: #fff; }
+    .btn-secondary:hover { background: #334155; }
+
+    .si-table-wrapper { flex: 1; overflow: auto; }
+    .si-table { width: 100% !important; border-collapse: collapse; }
+    .si-table thead th {
+        background: #f8fafc; color: #475569; font-size: 0.75rem;
+        font-weight: 600; padding: 12px; border-bottom: 2px solid #e2e8f0;
+        position: sticky; top: 0; z-index: 10; text-transform: uppercase;
+    }
+    .si-table tbody td {
+        padding: 10px 12px; border-bottom: 1px solid #f1f5f9;
+        color: #334155; font-size: 0.85rem;
+    }
+    .si-table tbody tr:hover { background-color: #f1f5f9; }
+
+    .btn-edit { background: var(--accent-blue); color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+    .btn-delete { background: #ef4444; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; margin-left: 6px; cursor: pointer; }
+
+    .status-badge {
+        font-size: 0.75rem; padding: 3px 12px; border-radius: 12px; font-weight: 600; display: inline-block;
+    }
+    .status-active { background: rgba(34,197,94,0.12); color: #16a34a; }
+    .status-inactive { background: rgba(148,163,184,0.12); color: #64748b; }
+
+    /* Toggle Switch */
+    .toggle-wrapper { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+    .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .toggle-switch input { display: none; }
+    .toggle-slider {
+        position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+        background: #cbd5e1; border-radius: 24px; transition: 0.3s;
+    }
+    .toggle-slider::before {
+        content: ""; position: absolute; height: 18px; width: 18px;
+        left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s;
+    }
+    .toggle-switch input:checked + .toggle-slider { background: var(--accent-blue); }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    /* Recipient Modal */
+    .recip-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 10000; justify-content: center; align-items: center; }
+    .recip-modal.active { display: flex; }
+    .modal-content-custom {
+        background: white; padding: 30px; border-radius: 16px; max-width: 440px; width: 90%;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+    }
+    .modal-content-custom .input-group { margin-bottom: 12px; }
+
+    /* Dark Mode */
+    [data-theme="dark"] .si-table thead th { background: #1e293b; color: #f1f5f9; border-bottom-color: #334155; }
+    [data-theme="dark"] .si-table tbody td { border-bottom-color: #334155; color: #cbd5e1; }
+    [data-theme="dark"] .si-table tbody tr:hover { background-color: rgba(255,255,255,0.05); }
+    [data-theme="dark"] .modal-content-custom { background: #1e293b; color: #f1f5f9; }
+    [data-theme="dark"] .modal-content-custom .input-group-text { background: rgba(59,130,246,0.15); color: #94a3b8; }
+</style>
+
+<div class="page-header-row">
+    <h2 class="page-title">Email Notification Configuration</h2>
+</div>
+
+<div class="si-container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, msg in messages %}
+    <div style="padding:12px 20px;border-radius:6px;font-size:0.9rem;{% if category=='success' %}background:rgba(34,197,94,0.1);color:#16a34a;border:1px solid rgba(34,197,94,0.3);{% else %}background:rgba(239,68,68,0.1);color:#dc2626;border:1px solid rgba(239,68,68,0.3);{% endif %}">
+        {{ msg }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <!-- SMTP Configuration Card -->
+    <div class="mb-3 card si-card">
+        <div class="chart-header-row">
+            <h3 class="bar-card-title"><span class="bar-title-accent"></span>SMTP Server Settings</h3>
+        </div>
+        <form method="POST" action="/email-config" class="si-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="input-group">
+                <span class="input-group-text" style="width: 140px;">SMTP Host</span>
+                <input type="text" class="form-control" name="smtp_host" value="{{ config.smtp_host if config else 'smtp.gmail.com' }}" required>
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 140px;">Port</span>
+                <input type="number" class="form-control" name="smtp_port" value="{{ config.smtp_port if config else 587 }}" required>
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 140px;">Username</span>
+                <input type="text" class="form-control" name="smtp_user" value="{{ config.smtp_user if config else '' }}" placeholder="your@gmail.com" required>
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 140px;">App Password</span>
+                <input type="password" class="form-control" name="smtp_password" value="{{ config.smtp_password if config else '' }}" placeholder="Gmail App Password" required>
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 140px;">From Email</span>
+                <input type="email" class="form-control" name="from_email" value="{{ config.from_email if config else '' }}" placeholder="Same as username">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 140px;">Active</span>
+                <div class="toggle-wrapper" style="padding: 6px 12px;">
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="is_active" {% if config and config.is_active %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span style="font-size:0.85rem;color:var(--text-muted);">Enable email notifications</span>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-custom btn-primary">
+                    <i class="fa-solid fa-save"></i> Save SMTP Settings
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Recipients Card -->
+    <div class="card si-card">
+        <div class="chart-header-row" style="justify-content:space-between;">
+            <h3 class="bar-card-title"><span class="bar-title-accent"></span>Alert Recipients</h3>
+            <button class="btn-custom btn-primary" onclick="showAddRecipient()" style="font-size:0.85rem;padding:6px 16px;">
+                <i class="fa-solid fa-plus"></i> Add Recipient
+            </button>
+        </div>
+
+        <div class="si-table-wrapper">
+            {% if not recipients %}
+            <div style="text-align:center;padding:50px 20px;color:var(--text-muted);">
+                <i class="fa-solid fa-users-slash" style="font-size:2.5rem;display:block;margin-bottom:12px;opacity:0.5;"></i>
+                No recipients configured yet.
+            </div>
+            {% else %}
+            <table class="si-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th style="width:140px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in recipients %}
+                    <tr>
+                        <td>{{ r.name }}</td>
+                        <td>{{ r.email }}</td>
+                        <td>
+                            <span class="status-badge {% if r.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                {{ 'Active' if r.is_active else 'Inactive' }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-btns" style="display:flex;gap:6px;">
+                                <button class="btn-edit" onclick="editRecipient({{ r | tojson | forceescape }})">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                </button>
+                                <button class="btn-delete" onclick="deleteRecipient({{ r.id }})">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Recipient Modal -->
+<div id="recipientModal" class="recip-modal">
+    <div class="modal-content-custom">
+        <h3 id="modalTitle" style="margin-top:0;">Add Recipient</h3>
+        <form id="recipientForm" onsubmit="saveRecipient(event)">
+            <input type="hidden" id="recipId">
+            <div class="input-group">
+                <span class="input-group-text" style="width:80px;">Name</span>
+                <input type="text" class="form-control" id="recipName" required placeholder="e.g. John Doe">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width:80px;">Email</span>
+                <input type="email" class="form-control" id="recipEmail" required placeholder="e.g. john@example.com">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width:80px;">Status</span>
+                <div class="toggle-wrapper" style="padding:6px 12px;">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="recipActive" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span style="font-size:0.85rem;">Active</span>
+                </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+                <button type="button" class="btn-custom btn-secondary" onclick="closeRecipientModal()">Cancel</button>
+                <button type="submit" class="btn-custom btn-primary">
+                    <i class="fa-solid fa-save"></i> Save
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function showAddRecipient() {
+        document.getElementById('modalTitle').textContent = 'Add Recipient';
+        document.getElementById('recipId').value = '';
+        document.getElementById('recipName').value = '';
+        document.getElementById('recipEmail').value = '';
+        document.getElementById('recipActive').checked = true;
+        document.getElementById('recipientModal').classList.add('active');
+    }
+
+    function editRecipient(data) {
+        document.getElementById('modalTitle').textContent = 'Edit Recipient';
+        document.getElementById('recipId').value = data.id;
+        document.getElementById('recipName').value = data.name;
+        document.getElementById('recipEmail').value = data.email;
+        document.getElementById('recipActive').checked = data.is_active;
+        document.getElementById('recipientModal').classList.add('active');
+    }
+
+    function closeRecipientModal() {
+        document.getElementById('recipientModal').classList.remove('active');
+    }
+
+    async function saveRecipient(e) {
+        e.preventDefault();
+        const id = document.getElementById('recipId').value;
+        const name = document.getElementById('recipName').value.trim();
+        const email = document.getElementById('recipEmail').value.trim();
+        const isActive = document.getElementById('recipActive').checked;
+
+        if (!name || !email) return;
+
+        const isEdit = !!id;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        const res = await fetch(isEdit ? `/api/email-recipients/${id}` : '/api/email-recipients', {
+            method: isEdit ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({ name, email, is_active: isActive })
+        });
+        if (res.ok) { location.reload(); }
+        else { const d = await res.json(); alert(d.error || 'Failed'); }
+    }
+
+    async function deleteRecipient(id) {
+        if (!confirm('Delete this recipient?')) return;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        const res = await fetch(`/api/email-recipients/${id}`, {
+            method: 'DELETE',
+            headers: { 'X-CSRFToken': csrfToken }
+        });
+        if (res.ok) location.reload();
+    }
+
+    document.getElementById('recipientModal').addEventListener('click', function(e) {
+        if (e.target === this) closeRecipientModal();
+    });
+</script>
+{% endblock %}

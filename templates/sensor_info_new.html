@@ -1,0 +1,684 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Premium Design Aesthetics - Inspired by provided image */
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.05);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --accent-blue: #3b82f6;
+        --accent-green: #10b981;
+        --label-bg: rgba(59, 130, 246, 0.1);
+    }
+
+    .si-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding: 15px;
+    }
+
+    .card-header-custom {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        padding-left: 10px;
+        border-left: 4px solid var(--accent-green);
+    }
+
+    .card-header-custom h2 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #f8fafc;
+        margin: 0;
+        text-transform: capitalize;
+    }
+
+    /* Form Styles - Pill/Grouped Style */
+    .si-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 12px;
+    }
+
+    .input-group-custom {
+        display: flex;
+        align-items: stretch;
+        border: 1px solid var(--glass-border);
+        border-radius: 6px;
+        overflow: hidden;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .input-group-custom label {
+        background: var(--label-bg);
+        color: #94a3b8;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        min-width: 120px;
+        display: flex;
+        align-items: center;
+        border-right: 1px solid var(--glass-border);
+    }
+
+    .input-group-custom input,
+    .input-group-custom select {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: #fff;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+
+    .input-group-custom input:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .form-actions {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .btn-custom {
+        padding: 8px 24px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: var(--accent-blue);
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background: #2563eb;
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-secondary {
+        background: #475569;
+        color: #fff;
+    }
+
+    .btn-secondary:hover {
+        background: #334155;
+    }
+
+    /* Table Styles */
+    .si-table-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 400px;
+    }
+
+    .si-table-wrapper {
+        flex: 1;
+        overflow: auto;
+        border-radius: 6px;
+        border: 1px solid var(--glass-border);
+    }
+
+    .si-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .si-table th {
+        position: sticky;
+        top: 0;
+        background: #334155;
+        color: #f8fafc;
+        padding: 12px;
+        text-align: left;
+        z-index: 10;
+    }
+
+    .si-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--glass-border);
+        color: #cbd5e1;
+    }
+
+    .si-table tr:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-edit {
+        background: var(--accent-blue);
+        color: #fff;
+        border: none;
+        padding: 4px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.75rem;
+    }
+
+    .btn-edit:hover {
+        background: #2563eb;
+    }
+
+    /* Scrollbar */
+    .si-table-wrapper::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .si-table-wrapper::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+    }
+
+    /* Status Modal Styles */
+    .status-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content-custom {
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        transform: translateY(20px);
+        transition: transform 0.3s ease-out;
+    }
+
+    .status-modal.active {
+        display: flex;
+    }
+
+    .status-modal.active .modal-content-custom {
+        transform: translateY(0);
+    }
+
+    .modal-icon {
+        font-size: 3.5rem;
+        margin-bottom: 15px;
+    }
+
+    .icon-success {
+        color: #10b981;
+    }
+
+    .icon-error {
+        color: #ef4444;
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 10px;
+    }
+
+    .modal-msg {
+        color: #64748b;
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+
+    .btn-modal-close {
+        background: var(--accent-blue);
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+
+    .btn-modal-close:hover {
+        opacity: 0.9;
+    }
+</style>
+
+
+<!-- Page Header -->
+<div class="page-header-row">
+    <h2 class="page-title">Sensor List Information <span style="color: var(--primary);"></span></h2>
+</div>
+
+<div class="si-container">
+    <!-- Form Card -->
+
+    <div class="mb-3 card si-card">
+        <div class="chart-header-row">
+            <h3 class="bar-card-title" id="siFormTitle"><span class="bar-title-accent"></span>Sensor Information</h3>
+
+        </div>
+        <form id="sensorForm" action="/sensor-info-new" method="POST" class="si-form">
+            <input type="hidden" name="id" id="field_id">
+
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Sensor ID</span>
+                <input type="text" class="form-control" name="sensor_id" id="field_sensor_id" required
+                    placeholder="e.g. anm3d02">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Sensor Code</span>
+                <input type="text" class="form-control" name="sensor_code" id="field_sensor_code" required
+                    placeholder="e.g. FB_FB_RH_S2M">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Channel Code</span>
+                <input type="text" class="form-control" name="channel_code" id="field_channel_code" required
+                    placeholder="e.g. CH01">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Logger</span>
+                <input type="text" class="form-control" name="logger" id="field_logger" required
+                    placeholder="e.g. LOG-01">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Channel Index</span>
+                <input type="text" class="form-control" name="channel_index" id="field_channel_index" required
+                    placeholder="e.g. 0">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Sensor Type</span>
+                <input type="text" class="form-control" name="sensor_type" id="field_sensor_type" required
+                    placeholder="e.g. Anemometer 3D">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Sensor Group</span>
+                <input type="text" class="form-control" name="sensor_group" id="field_sensor_group" required
+                    placeholder="e.g. A">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Sampling HZ</span>
+                <input type="text" class="form-control" name="sampling_hz" id="field_sampling_hz" required
+                    placeholder="e.g. 1.0">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Direction</span>
+                <input type="text" class="form-control" name="direction" id="field_direction" required
+                    placeholder="e.g. E/W/S/N">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Location</span>
+                <input type="text" class="form-control" name="location" id="field_location" required
+                    placeholder="e.g. 1/2 of the mid-span(East)">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Operation</span>
+                <input type="text" class="form-control" name="operation" id="field_operation" required
+                    placeholder="e.g. O/X">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Trigger Setting</span>
+                <input type="text" class="form-control" name="trigger_setting" id="field_trigger_setting" required
+                    placeholder="e.g. O/X">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Manufacturer</span>
+                <input type="text" class="form-control" name="manufacturer" id="field_manufacturer" required
+                    placeholder="e.g. R.M. Young">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Model</span>
+                <input type="text" class="form-control" name="model" id="field_model" required placeholder="e.g. 81000">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Serial No.</span>
+                <input type="text" class="form-control" name="serial_no" id="field_serial_no" placeholder="e.g. 300320">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Install Date</span>
+                <input type="text" class="form-control" name="install_at" id="field_install_at" readonly
+                    placeholder="e.g. 2026-04-27">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">IP Address</span>
+                <input type="text" class="form-control" name="ip_address" id="field_ip_address"
+                    placeholder="e.g. 192.168.1.10">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Port</span>
+                <input type="text" class="form-control" name="port" id="field_port" placeholder="e.g. 1883">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Threshold 1</span>
+                <input type="text" class="form-control" name="th1" id="field_th1">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Threshold 2</span>
+                <input type="text" class="form-control" name="th2" id="field_th2">
+            </div>
+            <div class="input-group">
+                <span class="input-group-text" style="width: 120px;">Threshold 3</span>
+                <input type="text" class="form-control" name="th3" id="field_th3">
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-custom btn-secondary" onclick="clearForm()">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+                <button type="submit" class="btn-custom btn-primary">
+                    <i class="fa-solid fa-save"></i> Save Sensor
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table Card -->
+    <div class="card si-card si-table-container">
+        <div class="chart-header-row">
+            <h3 class="bar-card-title" id="siListTitle"><span class="bar-title-accent"></span>Sensor List</h3>
+
+        </div>
+
+        <!-- Table Header Bar (Filters & Actions) -->
+        <div class="si-table-header">
+            <div class="header-filters">
+                <div class="si-entries-wrap" style="display: flex; align-items: center; gap: 5px; margin-right: 10px;">
+                    <span style="font-size: 0.85rem; color: #000;">Show</span>
+                    <select class="si-select-sm" id="customLength" style="min-width: 70px;">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <span style="font-size: 0.85rem; color: #000;">entries</span>
+                </div>
+
+                <select class="si-select-sm" id="typeFilter">
+                    <option value="">All Types</option>
+                    {% set seen_types = [] %}
+                    {% for r in rows %}
+                    {% if r.sensor_type and r.sensor_type not in seen_types %}
+                    {% if seen_types.append(r.sensor_type) %}{% endif %}
+                    <option value="{{ r.sensor_type }}">{{ r.sensor_type }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+
+                <div class="si-search-wrap" style="display: flex; align-items: center; gap: 5px; margin-left: 10px;">
+                    <span style="font-size: 0.85rem; color: #000;">Search:</span>
+                    <input type="text" class="si-select-sm" id="customSearch" placeholder="Filter table..."
+                        style="min-width: 180px;">
+                </div>
+            </div>
+
+
+            <div class="header-actions">
+                <div class="last-update-badge">
+                    <i class="fa-regular fa-clock"></i>
+                    Last Update : <span id="lastUpdateText">{{ rows[0].install_at if rows else '-' }}</span>
+                </div>
+                <button class="btn-export btn-pdf" onclick="downloadPDF()">
+                    <i class="fa-solid fa-file-pdf"></i> PDF
+                </button>
+                <button class="btn-export btn-excel" onclick="downloadExcel()">
+                    <i class="fa-solid fa-file-excel"></i> Excel
+                </button>
+            </div>
+        </div>
+
+        <div class="si-table-wrapper">
+            <table class="si-table" id="sensorTable">
+                <thead>
+                    <tr>
+                        <th>Sensor Code</th>
+                        <th>Channel</th>
+                        <th>Logger</th>
+                        <th>IP Address</th>
+                        <th>Port</th>
+                        <th>Type</th>
+
+
+                        <th>Group</th>
+                        <th>Hz</th>
+                        <th>Threshold</th>
+                        <th>Install Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in rows %}
+                    <tr>
+                        <td>{{ r.sensor_code or '-' }}</td>
+                        <td>{{ r.channel_code or '-' }}</td>
+                        <td>{{ r.logger or '-' }}</td>
+                        <td>{{ r.ip_address or '-' }}</td>
+                        <td>{{ r.port or '-' }}</td>
+                        <td>{{ r.sensor_type or '-' }}</td>
+
+
+                        <td>{{ r.sensor_group or '-' }}</td>
+                        <td>{{ r.sampling_hz or '-' }}</td>
+                        <td>
+                            <span style="color:#ef4444">{{ r.th1 or '-' }}</span> /
+                            <span style="color:#f59e0b">{{ r.th2 or '-' }}</span> /
+                            <span style="color:#3b82f6">{{ r.th3 or '-' }}</span>
+                        </td>
+                        <td>{{ r.install_at or '-' }}</td>
+                        <td>
+                            <button class="btn-edit" data-sensor="{{ r | tojson | forceescape }}"
+                                onclick="editSensor(JSON.parse(this.getAttribute('data-sensor')))">
+                                <i class="fa-solid fa-pen-to-square"></i> Edit
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery + DataTables CDN -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+<style>
+    /* DataTable Styling Overrides to match theme */
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_processing,
+    .dataTables_wrapper .dataTables_paginate {
+        color: #000 !important;
+        margin-bottom: 10px;
+    }
+
+
+    .dataTables_wrapper .dataTables_length select,
+    .dataTables_wrapper .dataTables_filter input {
+        background: rgba(0, 0, 0, 0.05) !important;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        color: #000 !important;
+        border-radius: 4px;
+        padding: 4px 8px;
+    }
+
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        color: #000 !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: var(--accent-blue) !important;
+        border-color: var(--accent-blue) !important;
+        color: #fff !important;
+    }
+
+    /* Ensure table is not double scrollable */
+    .si-table-wrapper {
+        overflow: visible !important;
+    }
+
+    .dt-scroll-wrap {
+        max-height: 600px;
+        /* Increased for better visibility of 25 rows */
+        overflow-y: auto;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        border-radius: 6px;
+    }
+
+    /* Compact Table Styling */
+    .si-table {
+        width: 100% !important;
+        border-collapse: collapse;
+    }
+
+    .si-table thead th {
+        background: #f8fafc;
+        color: #475569;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 10px 12px;
+        border-bottom: 2px solid #e2e8f0;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .si-table tbody td {
+        padding: 8px 12px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+        font-size: 0.85rem;
+    }
+
+    .si-table tbody tr:hover {
+        background-color: #f1f5f9;
+    }
+
+    /* Action button scaling */
+    .btn-edit {
+        padding: 2px 8px;
+        font-size: 0.75rem;
+    }
+
+    /* Table Action Bar Styling */
+    .si-table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .header-filters {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .si-search-wrap input {
+        background: white !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #000 !important;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .si-search-wrap input:focus {
+        border-color: var(--accent-blue) !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+
+
+    .header-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .si-select-sm {
+        padding: 5px 10px;
+        border-radius: 6px;
+        border: 1px solid #cbd5e1;
+        background: white;
+        font-size: 0.85rem;
+        color: #475569;
+        min-width: 150px;
+        cursor: pointer;
+    }
+
+    .last-update-badge {
+        font-size: 0.75rem;
+        color: #3b82f6;
+        background: rgba(59, 130, 246, 0.05);
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: 1px solid rgba(59, 130, 246, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-export {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .btn-pdf {
+        background: #fef2f2;
+        color: #ef4444;
+        border: 1px solid #fee2e2;
+    }
+
+    .btn-pdf:hover {
+        background: #fee2e2;
+    }
+
+    .btn-excel {
+        background: #f0fdf4;
+        color: #10b981;
+        border: 1px solid #dcfce7;
+    }
+
+    .btn-excel:hover {
+        background: #dcfce7;
+    }
+</style>
+
+<!-- SheetJS for Excel Export -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+<script src="{{ url_for('static', filename='js/sensor_info.js') }}" defer></script>
+
+
+{% endblock %}

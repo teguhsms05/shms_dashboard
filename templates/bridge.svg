@@ -1,0 +1,9 @@
+<svg viewBox="0 0 1000 300" width="100%">
+    <rect x="100" y="180" width="800" height="20" fill="#555"/>
+    <rect x="480" y="60" width="40" height="120" fill="#777"/>
+
+    <line id="cable1" x1="500" y1="80" x2="200" y2="180" stroke="green" stroke-width="4"/>
+    <line id="cable2" x1="500" y1="80" x2="800" y2="180" stroke="green" stroke-width="4"/>
+
+    <circle id="tilt_pier" cx="500" cy="180" r="8" fill="green"/>
+</svg>

@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="strain-container">
+    <!-- Header -->
+    <div class="strain-header">
+        <h2 class="page-title">Strain Gauge Monitoring – <span style="color: var(--primary);">SG-01</span></h2>
+        <p>Monitoring regangan material (microstrain) dan kalkulasi tegangan secara real-time.</p>
+    </div>
+
+    <!-- Summary Row -->
+    <div class="strain-summary-row">
+        <div class="strain-summary-card">
+            <div class="strain-card-icon icon-blue"><i class="fa-solid fa-clock"></i></div>
+            <span class="label">Last Update</span>
+            <span class="value" id="card-last-update">--:--:--</span>
+        </div>
+        <div class="strain-summary-card">
+            <div class="strain-card-icon icon-green"><i class="fa-solid fa-microchip"></i></div>
+            <span class="label">Current Strain</span>
+            <div style="display: flex; gap: 8px; align-items: baseline;">
+                <span class="value" id="card-strain" style="color: #22c55e;">0.00</span>
+                <small style="color: var(--text-muted); font-size: 0.8rem;">με</small>
+            </div>
+            <span style="font-size:0.65rem; color:var(--text-muted); font-weight:600;" id="strain-status">STATUS:
+                NORMAL</span>
+        </div>
+        <div class="strain-summary-card">
+            <div class="strain-card-icon icon-purple"><i class="fa-solid fa-weight-hanging"></i></div>
+            <span class="label">Calculated Stress</span>
+            <div style="display: flex; gap: 8px; align-items: baseline;">
+                <span class="value" id="card-stress">0.00</span>
+                <small style="color: var(--text-muted); font-size: 0.8rem;">MPa</small>
+            </div>
+            <span style="font-size:0.65rem; color:var(--text-muted); font-weight:600;">E = 200 GPa (Baja)</span>
+        </div>
+        <div class="strain-summary-card">
+            <div class="strain-card-icon icon-orange"><i class="fa-solid fa-arrow-up-right-dots"></i></div>
+            <span class="label">Peak Strain</span>
+            <div style="display: flex; gap: 8px; align-items: baseline;">
+                <span class="value" id="card-peak-strain">0.00</span>
+                <small style="color: var(--text-muted); font-size: 0.8rem;">με</small>
+            </div>
+            <span style="font-size:0.65rem; color:var(--text-muted); font-weight:600;">PEAK DETECTION</span>
+        </div>
+        <div class="strain-summary-card">
+            <div class="strain-card-icon icon-red"><i class="fa-solid fa-temperature-half"></i></div>
+            <span class="label">Member Temperature</span>
+            <div style="display: flex; gap: 8px; align-items: baseline;">
+                <span class="value" id="card-temp">28.5</span>
+                <small style="color: var(--text-muted); font-size: 0.8rem;">°C</small>
+            </div>
+            <span style="font-size:0.65rem; color:var(--text-muted); font-weight:600;">THERMAL LOAD</span>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="strain-main-grid">
+        <!-- Capture Zone for Screenshot -->
+        <div id="capture-zone"
+            style="grid-column: span 4; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 0;">
+            <!-- Real-Time Strain Chart -->
+            <div class="strain-card" style="grid-column: span 3;">
+                <div class="strain-card-header">
+                    <h3>Dynamic Strain Real-Time (ε)</h3>
+                    <div style="display: flex; gap: 20px; align-items: center;">
+                        <div class="strain-legend">
+                            <div class="legend-item" id="toggle-strain" data-axis="strain">
+                                <span class="dot" style="background: #22c55e;"></span> Strain (ε)
+                            </div>
+                            <div class="legend-item" id="toggle-temp" data-axis="temp">
+                                <span class="dot" style="background: #3b82f6;"></span> Temp (T)
+                            </div>
+                        </div>
+                        <div class="strain-controls">
+                            <button class="strain-btn-icon" id="btn-screenshot" title="Take Screenshot">
+                                <i class="fa-solid fa-camera"></i>
+                            </button>
+                            <button class="strain-btn strain-btn-blue" id="btn-stop-start">Stop</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="strain-chart" class="chart-box"></div>
+            </div>
+
+            <!-- Side Panel: Gauge & Info -->
+            <div class="strain-side-stack">
+                <!-- Tension/Compression Gauge -->
+                <div class="strain-card">
+                    <div class="strain-card-header">
+                        <h3>Stress Indicator</h3>
+                    </div>
+                    <div id="stress-gauge" style="height: 180px; width: 100%;"></div>
+                    <div style="text-align: center; margin-top: -20px; font-weight: 600; font-size: 0.9rem;"
+                        id="gauge-label">
+                        COMPRESSION
+                    </div>
+                </div>
+
+                <!-- Monitoring Info -->
+                <div class="strain-card">
+                    <div class="strain-card-header">
+                        <h3>Sensor Info</h3>
+                    </div>
+                    <ul class="info-list">
+                        <li class="info-item">
+                            <span class="info-label">Sampling Rate</span>
+                            <span class="info-val">50 Hz</span>
+                        </li>
+                        <li class="info-item">
+                            <span class="info-label">Material</span>
+                            <span class="info-val">Steel (Baja)</span>
+                        </li>
+                        <li class="info-item" style="border-bottom: none;">
+                            <span class="info-label">E-Modulus</span>
+                            <span class="info-val">200,000 MPa</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bottom Row: Trend Chart -->
+            <div class="strain-card" style="grid-column: span 4;">
+                <div class="strain-card-header">
+                    <h3>Static Trend (24 Hours)</h3>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Thermal & Dead Load Effects</div>
+                </div>
+                <div id="trend-chart" class="chart-box" style="height: 250px;"></div>
+            </div>
+
+            <!-- Real-time Snapshot Table -->
+            <div class="strain-card" style="grid-column: span 4;">
+                <div class="strain-card-header">
+                    <h3>Real-time Snapshot Table</h3>
+                </div>
+                <div class="table-wrapper">
+                    <table class="strain-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Strain (με)</th>
+                                <th>Stress (MPa)</th>
+                                <th>Temp (°C)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="snapshot-table-body">
+                            <!-- Rows injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-footer">
+                    <div class="table-info" id="table-entries-info">Showing 0 to 0 of 0 entries</div>
+                    <div class="shm-pagination" id="table-pagination">
+                        <!-- Pagination buttons injected by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/strain.js') }}"></script>
+{% endblock %}

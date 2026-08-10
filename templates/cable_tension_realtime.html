@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cs_realtime.css') }}">
+<div class="page-header">
+    <div class="page-header-row">
+        <h2 class="page-title">Cable Tension Monitor (FFT)</h2>
+    </div>
+</div>
+
+<div class="cable-stay-container">
+    <div class="card cable-monitor-card" id="cableTensionRealtimeCard" style="position: relative;">
+        <div class="card-header deck-header">
+            <h3 class="bar-card-title"><span class="bar-title-accent"></span> Cable Tension Real-time</h3>
+            <div class="chart-actions" style="display: flex; gap: 10px; align-items: center;">
+                <div class="toggle-group">
+                    <button class="btn-toggle active" data-unit="tension_avg">
+                        <i class="fas fa-layer-group"></i> Tension Avg [kN]
+                    </button>
+                    <button class="btn-toggle" data-unit="f1">
+                        <i class="fas fa-wave-square"></i> f₁ [Hz]
+                    </button>
+                    <button class="btn-toggle" data-unit="f2">
+                        <i class="fas fa-wave-square"></i> f₂ [Hz]
+                    </button>
+                    <button class="btn-toggle" data-unit="f3">
+                        <i class="fas fa-wave-square"></i> f₃ [Hz]
+                    </button>
+                </div>
+                {% if is_admin %}
+                <button id="btnSaveCablePositions" onclick="saveCablePositions()" style="display:none; align-items:center; gap:6px; padding:8px 14px; border-radius:6px; font-size:0.85rem; font-weight:600; border:none; cursor:pointer; background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0;">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Positions
+                </button>
+                {% endif %}
+                <button class="icon-btn" onclick="captureCableTensionRealtime()" title="Capture and Save Image (PNG)"
+                    style="font-size: 16px; color: #64748b; background: none; border: none; cursor: pointer; margin-left: 10px;">
+                    <i class="fa-solid fa-camera"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="deck-view">
+                <div class="teluk-luar-label">Teluk Luar</div>
+                <div class="bridge-structure">
+                    <div class="side top-side" id="top-cables"></div>
+                    <div class="bridge-overlay-wrapper" id="bridgeOverlayWrapper">
+                        <svg class="connector-line-ct" id="connectorSvgCt"></svg>
+                        <img src="{{ url_for('static', filename='assets/top_view_bridge.png') }}" class="bridge-image"
+                            alt="Bridge Top View" id="bridgeImgCt">
+                    </div>
+                    <div class="side bottom-side" id="bottom-cables"></div>
+                </div>
+                <div class="teluk-dalam-label">Teluk Dalam</div>
+                <div class="direction-labels">
+                    <span class="dir-south">South</span>
+                    <span class="dir-north">North</span>
+                </div>
+            </div>
+
+            <div class="chart-section" style="margin-top: 30px; padding-top: 20px;">
+                <div id="cable-tension-bar-chart" style="width: 100%; height: 450px;"></div>
+            </div>
+
+            <div class="chart-section" style="margin-top: 20px;">
+                <div class="card-header">
+                    <h4>Latest Readings</h4>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="data-table" id="tension-data-table" style="width: 100%; font-size: 0.85em;">
+                        <thead>
+                            <tr>
+                                <th>Cable</th>
+                                <th>f₁ (Hz)</th>
+                                <th>f₂ (Hz)</th>
+                                <th>f₃ (Hz)</th>
+                                <th>T₁ (kN)</th>
+                                <th>T₂ (kN)</th>
+                                <th>T₃ (kN)</th>
+                                <th>T_avg (kN)</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="ct-realtime-data"
+     data-tension-warn-kn="{{ tension_warn_kn }}"
+     data-tension-critical-kn="{{ tension_critical_kn }}"
+     data-is-admin="{{ 'true' if is_admin else 'false' }}"></div>
+<script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+<script src="{{ url_for('static', filename='js/cable_tension_realtime.js') }}"></script>
+{% endblock %}

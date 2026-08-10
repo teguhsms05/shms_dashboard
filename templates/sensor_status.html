@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header-row">
+    <div class="header-titles">
+        <h2 class="main-title">Sensor Status</h2>
+        <p class="sub-title">Real-time monitoring of sensor connectivity and operational health.</p>
+    </div>
+</div>
+
+<div class="ss-container">
+    <!-- Top Filter & Title Bar -->
+    <div class="ss-header-bar">
+        <div class="ss-filters">
+            <select id="filterCategory" class="ss-select">
+                <option value="ALL">All Sensors</option>
+                <option value="Load/Environment">Load/Environment</option>
+                <option value="Dynamic Response">Dynamic Response</option>
+                <option value="Local Response">Local Response</option>
+                <option value="Geometry">Geometry</option>
+            </select>
+            <span class="ss-separator">-</span>
+            <select id="filterSubcategory" class="ss-select">
+                <option value="ALL">sub category</option>
+                <option value="Earthquake">Earthquake</option>
+                <option value="Weather">Weather</option>
+                <option value="Structural Temperature">Structural Temperature</option>
+                <option value="Winds">Winds</option>
+                <option value="Acceleration">Acceleration</option>
+                <option value="Cable">Cable</option>
+                <option value="Strain">Strain</option>
+                <option value="Extensometer">Extensometer</option>
+                <option value="Displacement">Displacement</option>
+            </select>
+            <select id="filterLogger" class="ss-select">
+                <option value="ALL">All Loggers</option>
+            </select>
+            <button id="btnRefresh" class="ss-btn-refresh">
+                <i class="fa-solid fa-rotate"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Categories Accordions -->
+    <div id="sensorCategoriesContainer">
+        <!-- Rendered via static/js/sensor_status.js -->
+    </div>
+</div>
+
+<!-- Realtime Query Modal -->
+<div id="queryModal" class="ss-modal-overlay">
+    <div class="ss-modal-card">
+        <div class="ss-modal-header">
+            <h3 id="modalSensorTitle">Sensor Telemetry Query</h3>
+            <button id="btnCloseModal" class="ss-modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="ss-modal-body">
+            <div id="queryChartContainer" class="ss-chart-container"></div>
+            <table class="ss-table" style="margin-top: 10px;">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Measurement Value</th>
+                    </tr>
+                </thead>
+                <tbody id="queryTableBody">
+                    <tr>
+                        <td colspan="2" style="text-align: center;">Loading data...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/sensor_status.js') }}?v=1.0.0"></script>
+{% endblock %}

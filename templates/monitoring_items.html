@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="dashboard-header-row">
+    <div class="header-titles">
+        <h2 class="main-title">System Info – Monitoring Items</h2>
+        <p class="sub-title">Overview of installed sensors, including drawings and brochures.</p>
+    </div>
+</div>
+
+<!-- ═══ Geometry ═══ -->
+<div class="mi-section">
+    <h3 class="mi-section-title"><i class="fa-solid fa-ruler-combined"></i> Geometry</h3>
+    <table class="mi-table">
+        <colgroup>
+            <col class="col-sensor">
+            <col class="col-location">
+            <col class="col-model">
+            <col class="col-mfr">
+            <col class="col-qty">
+            <col class="col-actions">
+        </colgroup>
+        <thead>
+            <tr>
+                <th>SensorType</th>
+                <th>Location</th>
+                <th>Model</th>
+                <th>Manufacturer</th>
+                <th>Quantity</th>
+                <th class="mi-actions-col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Pylon Jts</td>
+                <td>Pylon</td>
+                <td>PT 420</td>
+                <td>TE Connectivity</td>
+                <td>2EA</td>
+                <td class="mi-actions">
+                    <button class="mi-btn D" onclick="openDrawingModal('Jointmeter', 'mapping/jm_mapping.png')"><i
+                            class="fa-solid fa-drafting-compass"></i> Drawing</button>
+                    <button class="mi-btn brochure" onclick="openBrochureModal('Jointmeter', 'brosur/jm_brosur.pdf')"><i
+                            class="fa-solid fa-file-pdf"></i> Brosur</button>
+                </td>
+            </tr>
+            <tr>
+                <td>Deck GNSS</td>
+                <td>Deck3</td>
+                <td>GNSS Receiver</td>
+                <td>Trimble</td>
+                <td>2EA</td>
+                <td class="mi-actions">
+                    <button class="mi-btn drawing" onclick="openDrawingModal('Deck GNSS', 'drawing_sensor.jpg')"><i
+                            class="fa-solid fa-drafting-compass"></i> Drawing</button>
+                    <button class="mi-btn brochure" onclick="openBrochureModal('Deck GNSS', 'brochure_gnss.pdf')"><i
+                            class="fa-solid fa-file-pdf"></i> Brosur</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- ═══ Local Response ═══ -->
+<div class="mi-section">
+    <h3 class="mi-section-title"><i class="fa-solid fa-wave-square"></i> Local Response</h3>
+    <table class="mi-table">
+        <colgroup>
+            <col class="col-sensor">
+            <col class="col-location">
+            <col class="col-model">
+            <col class="col-mfr">
+            <col class="col-qty">
+            <col class="col-actions">
+        </colgroup>
+        <thead>
+            <tr>
+                <th>SensorType</th>
+                <th>Location</th>
+                <th>Model</th>
+                <th>Manufacturer</th>
+                <th>Quantity</th>
+                <th class="mi-actions-col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Pylon Ssg</td>
+                <td>Pylon3</td>
+                <td>KM-100HAS</td>
+                <td>KYOWA</td>
+                <td>4EA</td>
+                <td class="mi-actions">
+                    <button class="mi-btn drawing"
+                        onclick="openDrawingModal('Pylon Ssg – KM-100HAS', 'drawing_sensor.jpg')"><i
+                            class="fa-solid fa-drafting-compass"></i> Drawing</button>
+                    <button class="mi-btn brochure"
+                        onclick="openBrochureModal('Pylon Ssg – KM-100HAS', 'brochure_km100has.pdf')"><i
+                            class="fa-solid fa-file-pdf"></i> Brosur</button>
+                </td>
+            </tr>
+            <tr>
+                <td>Deck Ct</td>
+                <td>Deck</td>
+                <td>CT-10T</td>
+                <td>KYOWA</td>
+                <td>12EA</td>
+                <td class="mi-actions">
+                    <button class="mi-btn drawing"
+                        onclick="openDrawingModal('Deck Ct – CT-10T', 'drawing_sensor.jpg')"><i
+                            class="fa-solid fa-drafting-compass"></i> Drawing</button>
+                    <button class="mi-btn brochure"
+                        onclick="openBrochureModal('Deck Ct – CT-10T', 'brochure_ct10t.pdf')"><i
+                            class="fa-solid fa-file-pdf"></i> Brosur</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- ═══ Dynamic Response ═══ -->
+<div class="mi-section">
+    <h3 class="mi-section-title"><i class="fa-solid fa-chart-line"></i> Dynamic Response</h3>
+    <table class="mi-table">
+        <colgroup>
+            <col class="col-sensor">
+            <col class="col-location">
+            <col class="col-model">
+            <col class="col-mfr">
+            <col class="col-qty">
+            <col class="col-actions">
+        </colgroup>
+        <thead>
+            <tr>
+                <th>SensorType</th>
+                <th>Location</th>
+                <th>Model</th>
+                <th>Manufacturer</th>
+                <th>Quantity</th>
+                <th class="mi-actions-col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Pylon Acceleration</td>
+                <td>Deck2</td>
+                <td>AC-73</td>
+                <td>GeoSIG</td>
+                <td>1EA</td>
+                <td class="mi-actions">
+                    <button class="mi-btn drawing"
+                        onclick="openDrawingModal('Pylon Acceleration – AC-73', 'drawing_sensor.jpg')"><i
+                            class="fa-solid fa-drafting-compass"></i> Drawing</button>
+                    <button class="mi-btn brochure"
+                        onclick="openBrochureModal('Pylon Acceleration – AC-73', 'brochure_ac73.pdf')"><i
+                            class="fa-solid fa-file-pdf"></i> Brosur</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- ═══ Load / Environment ═══ -->
+<div class="mi-section">
+    <h3 class="mi-section-title"><i class="fa-solid fa-cloud-sun"></i> Load / Environment</h3>
+    <table class="mi-table">
+        <colgroup>
+            <col class="col-sensor">
+            <col class="col-location">
+            <col class="col-model">
+            <col class="col-mfr">
+            <col class="col-qty">
+            <col class="col-actions">
+        </colgroup>
+        <thead>
+            <tr>
+                <th>SensorType</th>
+                <th>Location</th>
+                <th>Model</th>
+                <th>Manufacturer</th>
+                <th>Quantity</th>
+                <th class="mi-actions-col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Pylon Tmp</td>
+                <td>Pylon2</td>
+                <td>PT-100</td>
+                <td>KYOWA</td>
+                <td>3EA</td>
+                <td class="mi-actions">
+                    <button class="mi-btn drawing"
+                        onclick="openDrawingModal('Pylon Tmp – PT-100', 'drawing_sensor.jpg')"><i
+                            class="fa-solid fa-drafting-compass"></i> Drawing</button>
+                    <button class="mi-btn brochure"
+                        onclick="openBrochureModal('Pylon Tmp – PT-100', 'brochure_pt100.pdf')"><i
+                            class="fa-solid fa-file-pdf"></i> Brosur</button>
+                </td>
+            </tr>
+            <tr>
+                <td>Pylon Wp</td>
+                <td>Pylon</td>
+                <td>05106</td>
+                <td>R.M. Young</td>
+                <td>1EA</td>
+                <td class="mi-actions">
+                    <button class="mi-btn drawing"
+                        onclick="openDrawingModal('Pylon Wp – 05106', 'drawing_sensor.jpg')"><i
+                            class="fa-solid fa-drafting-compass"></i> Drawing</button>
+                    <button class="mi-btn brochure"
+                        onclick="openBrochureModal('Pylon Wp – 05106', 'brochure_05106.pdf')"><i
+                            class="fa-solid fa-file-pdf"></i> Brosur</button>
+                </td>
+            </tr>
+            <tr>
+                <td>Pylon Wt</td>
+                <td>Pylon3</td>
+                <td>05106</td>
+                <td>R.M. Young</td>
+                <td>1EA</td>
+                <td class="mi-actions">
+                    <button class="mi-btn drawing"
+                        onclick="openDrawingModal('Pylon Wt – 05106', 'drawing_sensor.jpg')"><i
+                            class="fa-solid fa-drafting-compass"></i> Drawing</button>
+                    <button class="mi-btn brochure"
+                        onclick="openBrochureModal('Pylon Wt – 05106', 'brochure_05106.pdf')"><i
+                            class="fa-solid fa-file-pdf"></i> Brosur</button>
+                </td>
+            </tr>
+            <tr>
+                <td>Pylon Atmp</td>
+                <td>Pylon</td>
+                <td>41382</td>
+                <td>R.M. Young</td>
+                <td>1EA</td>
+                <td class="mi-actions">
+                    <button class="mi-btn drawing"
+                        onclick="openDrawingModal('Pylon Atmp – 41382', 'drawing_sensor.jpg')"><i
+                            class="fa-solid fa-drafting-compass"></i> Drawing</button>
+                    <button class="mi-btn brochure"
+                        onclick="openBrochureModal('Pylon Atmp – 41382', 'brochure_41382.pdf')"><i
+                            class="fa-solid fa-file-pdf"></i> Brosur</button>
+                </td>
+            </tr>
+            <tr>
+                <td>Pylon Hum</td>
+                <td>Pylon2</td>
+                <td>41382</td>
+                <td>R.M. Young</td>
+                <td>1EA</td>
+                <td class="mi-actions">
+                    <button class="mi-btn drawing"
+                        onclick="openDrawingModal('Pylon Hum – 41382', 'drawing_sensor.jpg')"><i
+                            class="fa-solid fa-drafting-compass"></i> Drawing</button>
+                    <button class="mi-btn brochure"
+                        onclick="openBrochureModal('Pylon Hum – 41382', 'brochure_41382.pdf')"><i
+                            class="fa-solid fa-file-pdf"></i> Brosur</button>
+                </td>
+            </tr>
+            <tr>
+                <td>Deck Acceleration</td>
+                <td>Deck</td>
+                <td>AC-73</td>
+                <td>GeoSIG</td>
+                <td>2EA</td>
+                <td class="mi-actions">
+                    <button class="mi-btn drawing"
+                        onclick="openDrawingModal('Deck Acceleration – AC-73', 'drawing_sensor.jpg')"><i
+                            class="fa-solid fa-drafting-compass"></i> Drawing</button>
+                    <button class="mi-btn brochure"
+                        onclick="openBrochureModal('Deck Acceleration – AC-73', 'brochure_ac73.pdf')"><i
+                            class="fa-solid fa-file-pdf"></i> Brosur</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- ═══════════════════════════════════════
+     Modal – Drawing Viewer
+     ═══════════════════════════════════════ -->
+<div class="mi-modal-overlay" id="drawingModal">
+    <div class="mi-modal">
+        <div class="mi-modal-header">
+            <h3 id="drawingModalTitle">Sensor Drawing</h3>
+            <div class="mi-modal-header-actions">
+                <a id="drawingDownloadBtn" href="#" download class="mi-btn drawing"><i class="fa-solid fa-download"></i>
+                    Download</a>
+                <button class="mi-modal-close" onclick="closeModal('drawingModal')"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="mi-modal-body">
+            <img id="drawingModalImg" src="" alt="Drawing">
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     Modal – Brochure Viewer
+     ═══════════════════════════════════════ -->
+<div class="mi-modal-overlay" id="brochureModal">
+    <div class="mi-modal mi-modal-lg">
+        <div class="mi-modal-header brochure">
+            <h3 id="brochureModalTitle">Sensor Brochure</h3>
+            <button class="mi-modal-close" onclick="closeModal('brochureModal')"><i
+                    class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="mi-modal-body mi-modal-body-pdf">
+            <iframe id="brochureModalFrame" src="" frameborder="0"></iframe>
+            <div class="mi-pdf-fallback" id="brochureFallback" style="display:none;">
+                <i class="fa-solid fa-file-pdf" style="font-size:48px;color:#dc2626;"></i>
+                <p>PDF preview not available.</p>
+                <a id="brochureFallbackLink" href="#" target="_blank" class="mi-btn brochure">
+                    <i class="fa-solid fa-download"></i> Download PDF
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openDrawingModal(title, filename) {
+        var url = "/static/assets/" + filename;
+        document.getElementById("drawingModalTitle").textContent = title;
+        document.getElementById("drawingModalImg").src = url;
+        document.getElementById("drawingDownloadBtn").href = url;
+        document.getElementById("drawingModal").classList.add("open");
+        document.body.style.overflow = "hidden";
+    }
+
+    function openBrochureModal(title, filename) {
+        const url = "/static/assets/" + filename;
+        document.getElementById("brochureModalTitle").textContent = title;
+        const iframe = document.getElementById("brochureModalFrame");
+        const fallback = document.getElementById("brochureFallback");
+        iframe.style.display = "block";
+        fallback.style.display = "none";
+        iframe.src = url;
+
+        // If PDF fails to load, show fallback
+        iframe.onerror = function () {
+            iframe.style.display = "none";
+            fallback.style.display = "flex";
+            document.getElementById("brochureFallbackLink").href = url;
+        };
+
+        document.getElementById("brochureModal").classList.add("open");
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove("open");
+        document.body.style.overflow = "";
+        // Stop iframe loading
+        const iframe = document.getElementById("brochureModalFrame");
+        if (iframe) iframe.src = "";
+    }
+
+    // Close modal on overlay click
+    document.querySelectorAll(".mi-modal-overlay").forEach(overlay => {
+        overlay.addEventListener("click", function (e) {
+            if (e.target === this) {
+                this.classList.remove("open");
+                document.body.style.overflow = "";
+                const iframe = document.getElementById("brochureModalFrame");
+                if (iframe) iframe.src = "";
+            }
+        });
+    });
+
+    // Close modal on Escape key
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+            document.querySelectorAll(".mi-modal-overlay.open").forEach(m => {
+                m.classList.remove("open");
+                document.body.style.overflow = "";
+            });
+            const iframe = document.getElementById("brochureModalFrame");
+            if (iframe) iframe.src = "";
+        }
+    });
+</script>
+
+{% endblock %}

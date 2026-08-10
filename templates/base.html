@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/dsi.png') }}">
+    <!-- <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/dsi.png') }}"> -->
+    <title>SHMS Dashboard</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2.0.5">
+    <!-- CRITICAL: Mobile sidebar rules (cannot be cached) -->
+    <style>
+        @media (max-width: 1024px) {
+
+            /* Hide sidebar by default */
+            .sidebar {
+                display: none !important;
+            }
+
+            /* Sidebar open state - fully styled via JS setProperty */
+            .sidebar.mobile-open {
+                display: flex !important;
+                margin: 0;
+            }
+
+            /* Overlay covers EVERYTHING including the header */
+            .sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.4);
+                z-index: 9998;
+                display: none;
+                backdrop-filter: blur(2px);
+            }
+
+            .sidebar-overlay.active {
+                display: block !important;
+            }
+
+            /* Integrated mobile close button in header */
+            .sidebar-header {
+                display: flex !important;
+                justify-content: space-between;
+                align-items: center;
+                padding-right: 15px;
+                /* Space for close btn */
+            }
+
+            .sidebar-mobile-close {
+                display: flex !important;
+            }
+
+            .sidebar-mobile-close button {
+                background: transparent;
+                border: none;
+                color: rgba(255, 255, 255, 0.5);
+                /* Subtle gray */
+                font-size: 1.2rem;
+                cursor: pointer;
+                padding: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: color 0.2s;
+            }
+
+            .sidebar-mobile-close button:hover {
+                color: #fff;
+            }
+
+            /* Nav Items adjustments for mobile */
+            .sidebar .nav-item {
+                padding: 12px 20px !important;
+                font-size: 0.85rem !important;
+                margin: 2px 10px !important;
+                border-radius: 8px !important;
+            }
+
+            .sidebar .submenu-item {
+                padding: 12px 20px 12px 52px !important;
+            }
+
+            /* Main content full width on mobile */
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+
+        /* Hide close button on desktop */
+        @media (min-width: 1025px) {
+            .sidebar-mobile-close {
+                display: none !important;
+            }
+        }
+    </style>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+    <!-- amCharts 5 -->
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/radar.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/percent.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <!-- html2canvas for full card capture -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- Flatpickr (Date Picker) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+</head>
+
+<body>
+    <!-- Restore saved theme BEFORE render to prevent flash -->
+    <script>
+        (function () {
+            var t = localStorage.getItem('theme');
+            if (t) document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
+
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="{{ url_for('static', filename='assets/dsi.png') }}" style="height: 50px;" alt="DSI Logo">
+                    <span class="logo-text">
+                        <a href="{{ url_for('dashboard') }}">
+                            <img src="{{ url_for('static', filename='assets/dsi-name.png') }}" alt="DSI Name">
+                        </a>
+                    </span>
+                </div>
+                <!-- Mobile close button -->
+                <div class="sidebar-mobile-close" id="sidebar-mobile-close">
+                    <button id="sidebar-close-btn" title="Close Menu">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <!-- DASHBOARD -->
+                <div class="nav-category">MAIN</div>
+                <a href="/" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <span class="icon"><i class="fa-solid fa-house"></i></span>
+                    <span class="label">Dashboard</span>
+                </a>
+
+                <a href="/dsi-project" class="nav-item {% if request.endpoint == 'dsi_project' %}active{% endif %}">
+                    <span class="icon"><i class="fa-solid fa-map-location-dot"></i></span>
+                    <span class="label">DSI PROJECT</span>
+                </a>
+
+                <!-- TABLES & CHARTS CATEGORY -->
+                <div class="nav-category">BEBAN LUAR</div>
+                <div
+                    class="nav-group has-submenu {% if request.endpoint in ['anm2d_page', 'anm2d_sensor_page'] %}open{% endif %}">
+                    <a href="javascript:void(0);"
+                        class="nav-item submenu-toggle {% if request.endpoint in ['anm2d_page', 'anm2d_sensor_page'] %}active{% endif %}">
+                        <span class="icon"><i class="fa-solid fa-wind"></i></span>
+                        <span class="label">Anemometer 2D</span>
+                        <span class="arrow"><i
+                                class="fa-solid {% if request.endpoint in ['anm2d_page', 'anm2d_sensor_page'] %}fa-chevron-down{% else %}fa-chevron-right{% endif %}"></i></span>
+                    </a>
+                    <div class="submenu">
+                        {% for sid in (anm2d_sensors if anm2d_sensors is defined else []) %}
+                        <a href="/anm2d/{{ sid }}"
+                            class="submenu-item {% if request.endpoint == 'anm2d_sensor_page' and request.view_args.get('sensor_id') == sid %}active{% endif %}">
+                            {{ sid | upper }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div
+                    class="nav-group has-submenu {% if request.endpoint in ['anm3d_page', 'anm3d_sensor_page'] %}open{% endif %}">
+                    <a href="javascript:void(0);"
+                        class="nav-item submenu-toggle {% if request.endpoint in ['anm3d_page', 'anm3d_sensor_page'] %}active{% endif %}">
+                        <span class="icon"><i class="fa-solid fa-wind"></i></span>
+                        <span class="label">Anemometer 3D</span>
+                        <span class="arrow"><i
+                                class="fa-solid {% if request.endpoint in ['anm3d_page', 'anm3d_sensor_page'] %}fa-chevron-down{% else %}fa-chevron-right{% endif %}"></i></span>
+                    </a>
+                    <div class="submenu">
+                        {% for sid in (anm3d_sensors if anm3d_sensors is defined else []) %}
+                        <a href="/anm3d/{{ sid }}"
+                            class="submenu-item {% if request.endpoint == 'anm3d_sensor_page' and request.view_args.get('sensor_id') == sid %}active{% endif %}">
+                            {{ sid | upper }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                <!-- <div
+                    class="nav-group has-submenu {% if request.endpoint in ['atrh_page', 'atrh_sensor_page'] %}open{% endif %}">
+                    <a href="javascript:void(0);"
+                        class="nav-item submenu-toggle {% if request.endpoint in ['atrh_page', 'atrh_sensor_page'] %}active{% endif %}">
+                        <span class="icon"><i class="fa-solid fa-chart-line"></i></span>
+                        <span class="label">ATRH</span>
+                        <span class="arrow"><i
+                                class="fa-solid {% if request.endpoint in ['atrh_page', 'atrh_sensor_page'] %}fa-chevron-down{% else %}fa-chevron-right{% endif %}"></i></span>
+                    </a>
+                    <div class="submenu">
+                        {% for sid in (atrh_sensors if atrh_sensors is defined else []) %}
+                        <a href="/atrhs/{{ sid }}"
+                            class="submenu-item {% if request.endpoint == 'atrh_sensor_page' and request.view_args.get('sensor_id') == sid %}active{% endif %}">
+                            {{ sid | upper }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div> -->
+
+                <div
+                    class="nav-group has-submenu {% if request.endpoint in ['temp_page', 'temp_sensor_page'] %}open{% endif %}">
+                    <a href="javascript:void(0);"
+                        class="nav-item submenu-toggle {% if request.endpoint in ['temp_page', 'temp_sensor_page'] %}active{% endif %}">
+                        <span class="icon"><i class="fa-solid fa-temperature-high"></i></span>
+                        <span class="label">Temperature</span>
+                        <span class="arrow"><i
+                                class="fa-solid {% if request.endpoint in ['temp_page', 'temp_sensor_page'] %}fa-chevron-down{% else %}fa-chevron-right{% endif %}"></i></span>
+                    </a>
+                    <div class="submenu">
+                        {% for sid in (temp_sensors if temp_sensors is defined else []) %}
+                        <a href="/temp/{{ sid }}"
+                            class="submenu-item {% if request.endpoint == 'temp_sensor_page' and request.view_args.get('sensor_id') == sid %}active{% endif %}">
+                            {{ sid | upper }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div
+                    class="nav-group has-submenu {% if request.endpoint in ['atrh_page', 'atrh_sensor_page'] %}open{% endif %}">
+                    <a href="javascript:void(0);"
+                        class="nav-item submenu-toggle {% if request.endpoint in ['atrh_page', 'atrh_sensor_page'] %}active{% endif %}">
+                        <span class="icon"><i class="fa-solid fa-temperature-high"></i></span>
+                        <span class="label">ATRH</span>
+                        <span class="arrow"><i
+                                class="fa-solid {% if request.endpoint in ['atrh_page', 'atrh_sensor_page'] %}fa-chevron-down{% else %}fa-chevron-right{% endif %}"></i></span>
+                    </a>
+                    <div class="submenu">
+                        {% for sid in (atrh_sensors if atrh_sensors is defined else []) %}
+                        <a href="/atrhs/{{ sid }}"
+                            class="submenu-item {% if request.endpoint == 'atrh_sensor_page' and request.view_args.get('sensor_id') == sid %}active{% endif %}">
+                            {{ sid | upper }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="nav-category">RESPON STRUKTUR</div>
+                <a href="/accelerometer"
+                    class="nav-item {% if request.endpoint == 'accelerometer_page' %}active{% endif %}">
+                    <span class="icon"><i class="fa-solid fa-wave-square"></i></span>
+                    <span class="label">Accelerometer</span>
+                </a>
+
+                <a href="/vibration" class="nav-item {% if request.endpoint == 'vibration_page' %}active{% endif %}">
+                    <span class="icon"><i class="fa-solid fa-water"></i></span>
+                    <span class="label">Vibration</span>
+                </a>
+
+                <div
+                    class="nav-group has-submenu {% if request.endpoint in ['acc_kdi_page', 'acc_kdi_sensor_page'] %}open{% endif %}">
+                    <a href="javascript:void(0);"
+                        class="nav-item submenu-toggle {% if request.endpoint in ['acc_kdi_page', 'acc_kdi_sensor_page'] %}active{% endif %}">
+                        <span class="icon"><i class="fa-solid fa-water"></i></span>
+                        <span class="label">Acc KDI</span>
+                        <span class="arrow"><i
+                                class="fa-solid {% if request.endpoint in ['acc_kdi_page', 'acc_kdi_sensor_page'] %}fa-chevron-down{% else %}fa-chevron-right{% endif %}"></i></span>
+                    </a>
+                    <div class="submenu">
+                        {% for sid in (acc_kdi_sensors if acc_kdi_sensors is defined else []) %}
+                        <a href="/acc-kdi/{{ sid }}"
+                            class="submenu-item {% if request.endpoint == 'acc_kdi_sensor_page' and request.view_args.get('sensor_id') == sid %}active{% endif %}">
+                            {{ sid | upper }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <a href="/strain" class="nav-item {% if request.endpoint == 'strain_page' %}active{% endif %}">
+                    <span class="icon"><i class="fa-solid fa-chart-line"></i></span>
+                    <span class="label">Strain</span>
+                </a>
+
+                <div
+                    class="nav-group has-submenu {% if request.endpoint in ['strain_trigger_page', 'strain_trigger_sensor_page'] %}open{% endif %}">
+                    <a href="javascript:void(0);"
+                        class="nav-item submenu-toggle {% if request.endpoint in ['strain_trigger_page', 'strain_trigger_sensor_page'] %}active{% endif %}">
+                        <span class="icon"><i class="fa-solid fa-bolt"></i></span>
+                        <span class="label">Strain Trigger</span>
+                        <span class="arrow"><i
+                                class="fa-solid {% if request.endpoint in ['strain_trigger_page', 'strain_trigger_sensor_page'] %}fa-chevron-down{% else %}fa-chevron-right{% endif %}"></i></span>
+                    </a>
+                    <div class="submenu">
+                        {% for sid in (strain_trigger_sensors if strain_trigger_sensors is defined else []) %}
+                        <a href="/strain-trigger/{{ sid }}"
+                            class="submenu-item {% if request.endpoint == 'strain_trigger_sensor_page' and request.view_args.get('sensor_id') == sid %}active{% endif %}">
+                            {{ sid | upper }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div
+                    class="nav-group has-submenu {% if request.endpoint in ['tiltmeter_page', 'tiltmeter_sensor_page'] %}open{% endif %}">
+                    <a href="javascript:void(0);"
+                        class="nav-item submenu-toggle {% if request.endpoint in ['tiltmeter_page', 'tiltmeter_sensor_page'] %}active{% endif %}">
+                        <span class="icon"><i class="fa-solid fa-ruler-combined"></i></span>
+                        <span class="label">Tiltmeter</span>
+                        <span class="arrow"><i
+                                class="fa-solid {% if request.endpoint in ['tiltmeter_page', 'tiltmeter_sensor_page'] %}fa-chevron-down{% else %}fa-chevron-right{% endif %}"></i></span>
+                    </a>
+                    <div class="submenu">
+                        {% for sid in (tiltmeter_sensors if tiltmeter_sensors is defined else []) %}
+                        <a href="/tiltmeter/{{ sid }}"
+                            class="submenu-item {% if request.endpoint == 'tiltmeter_sensor_page' and request.view_args.get('sensor_id') == sid %}active{% endif %}">
+                            {{ sid | upper }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="nav-group has-submenu {% if request.path.startswith('/cable-stay') %}open{% endif %}">
+                    <a href="javascript:void(0);"
+                        class="nav-item submenu-toggle {% if request.path.startswith('/cable-stay') %}active{% endif %}">
+                        <span class="icon"><i class="fa-solid fa-bridge"></i></span>
+                        <span class="label">Cable Stay</span>
+                        <span class="arrow"><i
+                                class="fa-solid {% if request.path.startswith('/cable-stay') %}fa-chevron-down{% else %}fa-chevron-right{% endif %}"></i></span>
+                    </a>
+                    <div class="submenu">
+                        <a href="/cable-stay/realtime"
+                            class="submenu-item {% if request.endpoint == 'cable_stay_realtime' %}active{% endif %}">Realtime
+                            Monitoring</a>
+                        {% for sid in cable_sensors %}
+                        <a href="/cable-stay/sensor/{{ sid }}"
+                            class="submenu-item {% if request.path == '/cable-stay/sensor/' ~ sid %}active{% endif %}">
+                            {{ sid | upper }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="nav-group has-submenu {% if request.path.startswith('/cable-tension') %}open{% endif %}">
+                    <a href="javascript:void(0);"
+                        class="nav-item submenu-toggle {% if request.path.startswith('/cable-tension') %}active{% endif %}">
+                        <span class="icon"><i class="fa-solid fa-link"></i></span>
+                        <span class="label">Cable Tension</span>
+                        <span class="arrow"><i
+                                class="fa-solid {% if request.path.startswith('/cable-tension') %}fa-chevron-down{% else %}fa-chevron-right{% endif %}"></i></span>
+                    </a>
+                    <div class="submenu">
+                        <a href="/cable-tension/realtime"
+                            class="submenu-item {% if request.endpoint == 'cable_tension_realtime' %}active{% endif %}">Realtime
+                            Monitoring</a>
+                        {% for sid in (cable_tension_sensors if cable_tension_sensors is defined else []) %}
+                        <a href="/cable-tension/sensor/{{ sid }}"
+                            class="submenu-item {% if request.path == '/cable-tension/sensor/' ~ sid %}active{% endif %}">
+                            {{ sid | upper }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="nav-category">ANALISA & LAPORAN</div>
+                <a href="/correlation"
+                    class="nav-item {% if request.endpoint == 'correlation_page' %}active{% endif %}">
+                    <span class="icon"><i class="fa-solid fa-layer-group"></i></span>
+                    <span class="label">Cross Correlation</span>
+                </a>
+
+                <div
+                    class="nav-group has-submenu {% if request.endpoint in ['weekly_report_page', 'monthly_report_page', 'reports_page'] %}open{% endif %}">
+                    <a href="javascript:void(0);"
+                        class="nav-item submenu-toggle {% if request.endpoint in ['weekly_report_page', 'monthly_report_page', 'reports_page'] %}active{% endif %}">
+                        <span class="icon"><i class="fa-solid fa-file-contract"></i></span>
+                        <span class="label">Reports</span>
+                        <span class="arrow"><i
+                                class="fa-solid {% if request.endpoint in ['weekly_report_page', 'monthly_report_page', 'reports_page'] %}fa-chevron-down{% else %}fa-chevron-right{% endif %}"></i></span>
+                    </a>
+                    <div class="submenu">
+                        <a href="/reports/weekly"
+                            class="submenu-item {% if request.endpoint == 'weekly_report_page' %}active{% endif %}">Weekly
+                            Report</a>
+                        <a href="/reports/monthly"
+                            class="submenu-item {% if request.endpoint == 'monthly_report_page' %}active{% endif %}">Monthly
+                            Report</a>
+                    </div>
+                </div>
+                <div class="nav-category">System Info</div>
+                <a href="/bridge-info" class="nav-item {% if request.endpoint == 'bridge_info' %}active{% endif %}">
+                    <span class="icon"><i class="fa-solid fa-bridge"></i></span>
+                    <span class="label">Bridge Info</span>
+                </a>
+                <a href="/system-doc" class="nav-item {% if request.endpoint == 'system_doc' %}active{% endif %}">
+                    <span class="icon"><i class="fa-solid fa-diagram-project"></i></span>
+                    <span class="label">System Documents</span>
+                </a>
+                <a href="/monitoring-items"
+                    class="nav-item {% if request.endpoint == 'monitoring_items' %}active{% endif %}">
+                    <span class="icon"><i class="fa-solid fa-list-check"></i></span>
+                    <span class="label">Monitoring Items</span>
+                </a>
+                <a href="/sensor-info-new"
+                    class="nav-item {% if request.endpoint == 'sensor_info_new' %}active{% endif %}">
+                    <span class="icon"><i class="fa-solid fa-plus-circle"></i></span>
+                    <span class="label">Sensor Info</span>
+                </a>
+                <a href="/sensor-info" class="nav-item {% if request.endpoint == 'sensor_info' %}active{% endif %}">
+                    <span class="icon"><i class="fa-solid fa-microchip"></i></span>
+                    <span class="label">Sensor/Channel Info</span>
+                </a>
+
+                <a href="/logger-info" class="nav-item {% if request.endpoint == 'logger_info' %}active{% endif %}">
+                    <span class="icon"><i class="fa-solid fa-server"></i></span>
+                    <span class="label">Logger Info</span>
+                </a>
+
+                {% if session.get('role') == 'admin' %}
+                <a href="/user-management" class="nav-item {% if request.endpoint == 'user_management' %}active{% endif %}">
+                    <span class="icon"><i class="fa-solid fa-users-gear"></i></span>
+                    <span class="label">User Management</span>
+                </a>
+                {% endif %}
+            </nav>
+        </aside>
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- HEADER -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button id="sidebar-toggle" class="sidebar-toggle">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h1>Structural Health Monitoring (SHM) Bridge</h1>
+                </div>
+                <div class="header-right">
+                    <span class="datetime" id="current-datetime">Loading...</span>
+                    <!-- Simple JS to update time if not present already -->
+                    <script>
+                        // Clock
+                        setInterval(() => {
+                            const now = new Date();
+                            const options = {
+                                day: '2-digit', month: '2-digit', year: 'numeric',
+                                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                                timeZoneName: 'short'
+                            };
+                            const element = document.getElementById('current-datetime');
+                            if (element) {
+                                element.innerText = now.toLocaleString('id-ID', options).replace(/\./g, ':');
+                            }
+                        }, 1000);
+
+                        // Sidebar Toggle
+                        document.addEventListener('DOMContentLoaded', () => {
+                            const sidebar = document.querySelector('.sidebar');
+                            const toggleBtn = document.getElementById('sidebar-toggle');
+                            const icon = toggleBtn ? toggleBtn.querySelector('i') : null;
+
+                            const updateIcon = (isCollapsed) => {
+                                if (!icon) return;
+                                if (isCollapsed) {
+                                    icon.classList.remove('fa-bars');
+                                    icon.classList.add('fa-xmark');
+                                } else {
+                                    icon.classList.remove('fa-xmark');
+                                    icon.classList.add('fa-bars');
+                                }
+                            };
+
+                            const isMobile = () => window.innerWidth <= 1024;
+
+                            // On mobile: never apply 'collapsed', it breaks transform
+                            if (!isMobile()) {
+                                const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+                                if (isCollapsed) {
+                                    sidebar.classList.add('collapsed');
+                                    updateIcon(true);
+                                }
+                            } else {
+                                // Ensure sidebar starts hidden on mobile
+                                sidebar.classList.remove('collapsed');
+                                sidebar.classList.remove('mobile-open');
+                            }
+
+                            if (toggleBtn) {
+                                toggleBtn.addEventListener('click', () => {
+                                    if (isMobile()) {
+                                        // Mobile: force styles directly via JS (bypass CSS cascade)
+                                        const isOpen = sidebar.classList.toggle('mobile-open');
+                                        const overlay = document.getElementById('sidebar-overlay');
+                                        if (isOpen) {
+                                            // Force sidebar visible by directly setting styles
+                                            sidebar.style.setProperty('display', 'flex', 'important');
+                                            sidebar.style.setProperty('position', 'fixed', 'important');
+                                            sidebar.style.setProperty('left', '0px', 'important');
+                                            sidebar.style.setProperty('top', '0px', 'important');
+                                            sidebar.style.setProperty('transform', 'none', 'important');
+                                            sidebar.style.setProperty('width', '260px', 'important');
+                                            sidebar.style.setProperty('height', '100vh', 'important');
+                                            sidebar.style.setProperty('z-index', '9999', 'important');
+                                            sidebar.style.setProperty('flex-direction', 'column', 'important');
+                                            sidebar.style.setProperty('overflow-y', 'auto', 'important');
+                                            sidebar.style.setProperty('background', 'var(--bg-sidebar)', 'important');
+                                            sidebar.style.setProperty('box-shadow', '4px 0 15px rgba(0,0,0,0.2)', 'important');
+                                            if (overlay) overlay.classList.add('active');
+                                        } else {
+                                            // Reset: remove all forced styles, CSS will hide via display:none
+                                            sidebar.style.removeProperty('display');
+                                            sidebar.style.removeProperty('position');
+                                            sidebar.style.removeProperty('left');
+                                            sidebar.style.removeProperty('top');
+                                            sidebar.style.removeProperty('transform');
+                                            sidebar.style.removeProperty('width');
+                                            sidebar.style.removeProperty('height');
+                                            sidebar.style.removeProperty('z-index');
+                                            sidebar.style.removeProperty('flex-direction');
+                                            sidebar.style.removeProperty('overflow-y');
+                                            sidebar.style.removeProperty('background');
+                                            sidebar.style.removeProperty('box-shadow');
+                                            if (overlay) overlay.classList.remove('active');
+                                        }
+                                        updateIcon(isOpen);
+                                    } else {
+                                        // Desktop: collapse/expand
+                                        const currentlyCollapsed = sidebar.classList.toggle('collapsed');
+                                        localStorage.setItem('sidebar-collapsed', currentlyCollapsed);
+                                        updateIcon(currentlyCollapsed);
+                                    }
+                                });
+                            }
+
+                            // Close sidebar on overlay click (mobile)
+                            const overlay = document.getElementById('sidebar-overlay');
+                            if (overlay) {
+                                overlay.addEventListener('click', () => {
+                                    sidebar.classList.remove('mobile-open');
+                                    overlay.classList.remove('active');
+                                    // Remove forced inline styles
+                                    ['display', 'position', 'left', 'top', 'transform', 'width', 'height',
+                                        'z-index', 'flex-direction', 'overflow-y', 'background', 'box-shadow']
+                                        .forEach(p => sidebar.style.removeProperty(p));
+                                    updateIcon(false);
+                                });
+                            }
+
+                            // Close button inside sidebar (mobile)
+                            const closeBtn = document.getElementById('sidebar-close-btn');
+                            if (closeBtn) {
+                                closeBtn.addEventListener('click', () => {
+                                    sidebar.classList.remove('mobile-open');
+                                    if (overlay) overlay.classList.remove('active');
+                                    ['display', 'position', 'left', 'top', 'transform', 'width', 'height',
+                                        'z-index', 'flex-direction', 'overflow-y', 'background', 'box-shadow']
+                                        .forEach(p => sidebar.style.removeProperty(p));
+                                    updateIcon(false);
+                                });
+                            }
+
+                            // On resize: switch mode without sticky state
+                            window.addEventListener('resize', () => {
+                                if (!isMobile()) {
+                                    // Switching to desktop: remove overlay state
+                                    sidebar.classList.remove('mobile-open');
+                                    if (overlay) overlay.classList.remove('active');
+                                    // Restore desktop collapsed state
+                                    const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+                                    if (isCollapsed) {
+                                        sidebar.classList.add('collapsed');
+                                    } else {
+                                        sidebar.classList.remove('collapsed');
+                                    }
+                                    updateIcon(sidebar.classList.contains('collapsed'));
+                                } else {
+                                    // Switching to mobile: remove collapsed
+                                    sidebar.classList.remove('collapsed');
+                                    sidebar.classList.remove('mobile-open');
+                                    if (overlay) overlay.classList.remove('active');
+                                    updateIcon(false);
+                                }
+                            });
+
+                            // Submenu Toggling
+                            const submenuToggles = document.querySelectorAll('.submenu-toggle');
+                            submenuToggles.forEach(toggle => {
+                                toggle.addEventListener('click', (e) => {
+                                    e.preventDefault();
+                                    const parent = toggle.closest('.has-submenu');
+                                    const arrow = toggle.querySelector('.arrow i');
+
+                                    const isOpen = parent.classList.toggle('open');
+
+                                    if (isOpen) {
+                                        arrow.classList.replace('fa-chevron-right', 'fa-chevron-down');
+                                    } else {
+                                        arrow.classList.replace('fa-chevron-down', 'fa-chevron-right');
+                                    }
+                                });
+                            });
+
+                            // ── User profile dropdown ──
+                            const profileBtn = document.getElementById('userProfileBtn');
+                            const userDrop = document.getElementById('userDropdown');
+                            if (profileBtn && userDrop) {
+                                profileBtn.addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    userDrop.classList.toggle('open');
+                                });
+                                document.addEventListener('click', (e) => {
+                                    if (!profileBtn.contains(e.target)) {
+                                        userDrop.classList.remove('open');
+                                    }
+                                });
+                            }
+                        });
+                    </script>
+                    <div class="header-actions">
+                        <!-- Theme Toggle -->
+                        <div class="theme-toggle-wrap">
+                            <button id="theme-toggle-btn" class="icon-btn" title="Toggle Theme">
+                                <span class="icon">
+                                    <i class="fa-solid fa-moon"></i>
+                                </span>
+                            </button>
+                        </div>
+
+                        <!-- Notification -->
+                        <div class="notification-wrap" id="notification-toggle">
+                            <span class="icon">
+                                <i class="fa-solid fa-bell"></i>
+                            </span>
+                            <span class="badge" id="notification-badge" style="display: none;">0</span>
+
+                            <!-- Dropdown Window -->
+                            <div class="notification-dropdown" id="notification-dropdown">
+                                <div class="notif-header">
+                                    <h3>Notifications</h3>
+                                    <span class="unread-count" id="unread-count">0 Unread</span>
+                                </div>
+                                <div class="notif-body" id="notif-items">
+                                    <!-- Items will be injected here -->
+                                    <div class="empty-state">No new notifications</div>
+                                </div>
+                                <div class="notif-footer">
+                                    <button class="btn-view-all">View All</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="user-profile" id="userProfileBtn">
+                        {% set uname = session.get('username', 'US') %}
+                        <!-- Avatar Image -->
+                        <img src="{{ url_for('static', filename='assets/profile.png') }}" alt="User Profile"
+                            class="avatar-img">
+
+                        <!-- Dropdown -->
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="user-dropdown-header">
+                                <img src="{{ url_for('static', filename='assets/profile.png') }}" alt="User Profile"
+                                    class="user-dd-avatar-img">
+                                <div class="user-dd-info">
+                                    <span class="user-dd-name">{{ uname|title }}</span>
+                                    <span class="user-dd-role">Operator</span>
+                                </div>
+                            </div>
+
+                            <div class="user-dropdown-divider"></div>
+                            <a href="#" class="user-dd-item">
+                                <i class="fa-regular fa-user"></i> Profile
+                            </a>
+                            <a href="#" class="user-dd-item">
+                                <i class="fa-solid fa-gear"></i> Settings
+                            </a>
+                            <div class="user-dropdown-divider"></div>
+                            <a href="/logout" class="user-dd-item user-dd-logout">
+                                <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </header>
+
+            <!-- DYNAMIC CONTENT -->
+            <div class="dashboard-content">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Theme Toggle (global, works on all pages) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('theme-toggle-btn');
+            const html = document.documentElement;
+            if (!btn) return;
+
+            // Sync icon with current theme
+            const current = html.getAttribute('data-theme') || 'light';
+            updateIcon(current);
+
+            btn.addEventListener('click', () => {
+                const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                html.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+                updateIcon(next);
+
+                // Re-init charts if the page has them
+                if (typeof initAllCharts === 'function') initAllCharts();
+            });
+
+            function updateIcon(theme) {
+                const ic = btn.querySelector('.icon');
+                if (ic) ic.innerHTML = theme === 'light'
+                    ? '<i class="fa-solid fa-moon"></i>'
+                    : '<i class="fa-solid fa-sun"></i>';
+            }
+        });
+    </script>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+
+    <!-- Toast system must load BEFORE notifications.js -->
+    <script src="{{ url_for('static', filename='js/toast.js') }}"></script>
+    <!-- Chart utilities: shared amCharts 5 helpers (axis, pulse, theme, etc.) -->
+    <script src="{{ url_for('static', filename='js/chartUtils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <!-- Global Status Modal -->
+    <div id="statusModal" class="status-modal">
+        <div class="modal-content-custom">
+            <div id="modalIcon" class="modal-icon"></div>
+            <div id="modalTitle" class="modal-title"></div>
+            <div id="modalMsg" class="modal-msg"></div>
+            <button class="btn-modal-close" onclick="closeStatusModal()">OK</button>
+        </div>
+    </div>
+
+    <style>
+        /* Global Modal Styles */
+        .status-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); z-index: 99999; justify-content: center; align-items: center; }
+        .modal-content-custom { background: white; padding: 30px; border-radius: 16px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); transform: translateY(20px); transition: transform 0.3s; }
+        .status-modal.active { display: flex; }
+        .status-modal.active .modal-content-custom { transform: translateY(0); }
+        .modal-icon { font-size: 3.5rem; margin-bottom: 15px; }
+        .icon-success { color: #10b981; }
+        .icon-error { color: #ef4444; }
+        .modal-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 10px; }
+        .modal-msg { color: #64748b; margin-bottom: 20px; line-height: 1.5; }
+        .btn-modal-close { background: #3b82f6; color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    </style>
+
+    <script>
+        function showStatusModal(category, message) {
+            const modal = document.getElementById('statusModal');
+            const icon = document.getElementById('modalIcon');
+            const title = document.getElementById('modalTitle');
+            const msg = document.getElementById('modalMsg');
+            if (!modal) return;
+            if (category === 'success') {
+                icon.innerHTML = '<i class="fa-solid fa-circle-check icon-success"></i>';
+                title.innerText = 'Success!';
+            } else {
+                icon.innerHTML = '<i class="fa-solid fa-circle-xmark icon-error"></i>';
+                title.innerText = 'Error';
+            }
+            msg.innerText = message;
+            modal.classList.add('active');
+        }
+        function closeStatusModal() {
+            const modal = document.getElementById('statusModal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        // Handle Flask Flash Messages
+        document.addEventListener('DOMContentLoaded', function () {
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            const msgs = {{ messages | tojson | safe }};
+            msgs.forEach(function (msg) {
+                showStatusModal(msg[0], msg[1]);
+            });
+            {% endif %}
+            {% endwith %}
+        });
+    </script>
+</body>
+
+</html>

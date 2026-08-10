@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="si-header">
+    <div class="si-header-left">
+        <h2 class="si-title">Logger Info</h2>
+        <div class="si-filters">
+            <select class="si-select" id="typeFilter">
+                <option value="">All Types</option>
+                {% set seen_types = [] %}
+                {% for r in rows %}
+                {% if r.type not in seen_types %}
+                {% if seen_types.append(r.type) %}{% endif %}
+                <option value="{{ r.type }}">{{ r.type }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+            <select class="si-select" id="locationFilter">
+                <option value="">All Locations</option>
+                {% set seen_locs = [] %}
+                {% for r in rows %}
+                {% if r.location not in seen_locs %}
+                {% if seen_locs.append(r.location) %}{% endif %}
+                <option value="{{ r.location }}">{{ r.location }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="si-header-right">
+        <span class="si-badge"><i class="fa-regular fa-clock"></i> Last Update : {{ rows[-1].install_timestamp if rows
+            else '-' }}</span>
+        <button class="si-btn download" onclick="downloadCSV()"><i class="fa-solid fa-file-excel"></i> Download</button>
+    </div>
+</div>
+
+<!-- Table Wrapper -->
+<div class="si-table-wrap">
+    <table class="si-table li-table" id="loggerTable">
+        <thead>
+            <tr>
+                <th>Logger Code</th>
+                <th>Type</th>
+                <th>Location</th>
+                <th>Logger Name</th>
+                <th>Product</th>
+                <th>Manufacture</th>
+                <th>Model</th>
+                <th>Serial</th>
+                <th>Install Date</th>
+                <th>IP Address</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in rows %}
+            <tr>
+                <td>{{ r.logger_code or '' }}</td>
+                <td>{{ r.type or '' }}</td>
+                <td>{{ r.location or '' }}</td>
+                <td>{{ r.logger_name or '' }}</td>
+                <td>{{ r.logger_product or '' }}</td>
+                <td>{{ r.logger_manufacture or '' }}</td>
+                <td>{{ r.logger_model or '' }}</td>
+                <td>{{ r.logger_serial or '' }}</td>
+                <td>{{ r.install_timestamp or '' }}</td>
+                <td>{{ r.ip_address or '' }}</td>
+                <td>{{ r.status or '' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- jQuery + DataTables + SheetJS CDN -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        var table = $('#loggerTable').DataTable({
+            dom: '<"dt-top"lf><"dt-scroll-wrap"t><"dt-bottom"ip>',
+            pageLength: 10,
+            lengthMenu: [10, 25, 50, 100],
+            order: [],
+            language: {
+                search: "Search:",
+                lengthMenu: "Show _MENU_ entries",
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                paginate: { previous: "‹", next: "›" }
+            }
+        });
+
+        // ─── Dropdown Filters ───
+        $('#typeFilter').on('change', function () {
+            var val = $(this).val();
+            table.column(1).search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false).draw();
+        });
+        $('#locationFilter').on('change', function () {
+            var val = $(this).val();
+            table.column(2).search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false).draw();
+        });
+    });
+
+    // ─── Download XLSX ───
+    function downloadCSV() {
+        var table = document.getElementById('loggerTable');
+        var headers = [];
+        table.querySelectorAll('thead th').forEach(function (th) {
+            headers.push(th.textContent.replace(/\n/g, ' ').trim());
+        });
+
+        var data = [headers];
+        table.querySelectorAll('tbody tr').forEach(function (row) {
+            var rowData = [];
+            row.querySelectorAll('td').forEach(function (td) {
+                rowData.push(td.textContent.trim());
+            });
+            data.push(rowData);
+        });
+
+        var ws = XLSX.utils.aoa_to_sheet(data);
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Logger Info");
+        XLSX.writeFile(wb, "logger_info.xlsx");
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="report-page-container">
+
+    <!-- Controls (Hidden on Print) -->
+    <div class="card report-controls">
+        <div class="controls-left">
+            <h2 class="page-title">Weekly Report</h2>
+            <p class="text-muted">Select week to generate weekly monitoring report</p>
+        </div>
+        <div class="controls-center" style="display: flex; gap: 12px; flex-grow: 1; justify-content: center;">
+            <select class="form-select" id="select-sensor-type"
+                style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main);">
+                <option value="atrh">ATRH (Temp & Humidity)</option>
+                <option value="temp">Temperature Only</option>
+                <option value="anm2d">Wind Speed & Direction (2D)</option>
+                <option value="anm3d">Wind Speed & Direction (3D)</option>
+                <option value="tiltmeter">Tiltmeter</option>
+                <option value="cable">Cable Force</option>
+            </select>
+
+            <select class="form-select" id="select-period"
+                style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main);">
+                <!-- Populated by JS -->
+            </select>
+        </div>
+        <div class="controls-right" style="display: flex; gap: 12px;">
+            <button class="btn-generate" id="btn-refresh-report">
+                <i class="fa-solid fa-file-export"></i> Generate Report
+            </button>
+            <button class="btn-generate" onclick="window.print()">
+                <i class="fa-solid fa-print"></i> Print
+            </button>
+        </div>
+    </div>
+
+    <!-- Report Preview Section -->
+    <div class="report-preview" id="report-content">
+
+        <!-- PAGE 1: COVER -->
+        <div class="report-sheet">
+            <div class="report-cover">
+                <div class="cover-header">
+                    <p style="font-weight: 700; color: #ed1c24; margin-bottom: 5px;">DSI <span
+                            style="color: #111c43">Lifespan Management</span></p>
+                </div>
+
+                <div style="margin-bottom: 5vh;">
+                    <img src="{{ url_for('static', filename='assets/dsi.webp') }}" alt="dsi Logo"
+                        style="height: 100px;">
+                </div>
+
+                <div class="cover-titles">
+                    <h1 id="cover-project-name">Jembatan Bentang Pendek Duplikasi 2</h1>
+                    <h2 id="cover-location">Balang, Kalimantan Timur</h2>
+                    <h2 style="font-weight: 700; margin-top: 20px;">Structure Health Monitoring</h2>
+                </div>
+
+                <div class="report-period">
+                    <h1 id="cover-report-type">WEEKLY REPORT</h1>
+                    <h1 id="cover-date-range">Date : --</h1>
+                </div>
+
+                <div
+                    style="position: absolute; bottom: 40px; left: 40px; text-align: left; font-size: 0.7rem; color: #555;">
+                    <p>© Copyright as per ISO 16016 :</p>
+                    <p style="max-width: 600px; margin-top: 10px;">The copying, distribution and utilization of this
+                        document as well as the communication of its contents to others without expressed authorization
+                        by DYWIDAG is prohibited. Offenders will be held liable for the payment of damages.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic Pages for Sensors will be injected here -->
+        <div id="dynamic-report-pages"></div>
+
+    </div>
+</div>
+
+<!-- TEMPLATE for Sensor Report Sheet -->
+<template id="tpl-report-sheet">
+    <div class="report-sheet">
+        <div class="report-header">
+            <div class="report-header-left">
+                <span style="font-weight: 800; font-size: 1.2rem; color: #111c43;">DYWIDAG <span
+                        style="color: #ed1c1c;">▶</span></span>
+            </div>
+            <div class="report-header-right">
+                <p style="margin: 0; color: #ed1c24;">Duplikasi 2 Balang Bridge SHM</p>
+                <p style="margin: 0;">DYWIDAG Asia Co. Ltd.</p>
+            </div>
+        </div>
+
+        <div class="report-body">
+            <h2 class="sensor-report-title">Sensor Analysis Report</h2>
+
+            <div class="report-description">
+                <ul>
+                    <li class="sensor-description-text">The environmental monitoring data shows stable
+                        trends during the reporting period.</li>
+                </ul>
+            </div>
+
+            <!-- Dynamic Chart container -->
+            <div class="report-chart-box" style="height: 350px;"></div>
+
+            <div class="report-description">
+                <ul>
+                    <li><strong>CCTV:</strong> No abnormal observed.</li>
+                </ul>
+            </div>
+
+            <div class="report-photos-grid">
+                <div class="photo-item">
+                    <span class="photo-label">○ Camera1 --/--/-- --:--:--</span>
+                    <div
+                        style="background: #eee; height: 180px; display: flex; align-items: center; justify-content: center; color: #999;">
+                        Camera feed placeholder</div>
+                </div>
+                <div class="photo-item">
+                    <span class="photo-label">○ Camera2 --/--/-- --:--:--</span>
+                    <div
+                        style="background: #eee; height: 180px; display: flex; align-items: center; justify-content: center; color: #999;">
+                        Camera feed placeholder</div>
+                </div>
+            </div>
+        </div>
+
+        <div
+            style="position: absolute; bottom: 20px; left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 40px; font-size: 0.7rem; color: #555;">
+            <a href="https://www.dywidag.com"
+                style="color: #111c43; text-decoration: none; border-bottom: 2px solid #111c43;">www.dywidag.com</a>
+            <span class="page-number">2</span>
+        </div>
+    </div>
+</template>
+
+</div>
+</div>
+
+<!-- amCharts 5 for Report -->
+<script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+
+<!-- Report Logic (reuse existing) -->
+<script src="{{ url_for('static', filename='js/report_weekly.js') }}?v=999"></script>
+
+{% endblock %}

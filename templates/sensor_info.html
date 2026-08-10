@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="si-header">
+    <div class="si-header-left">
+        <h2 class="si-title">Sensor &amp; Channel</h2>
+        <div class="si-filters">
+            <select class="si-select" id="sensorFilter">
+                <option value="">All Sensors</option>
+                {% set seen_sensors = [] %}
+                {% for r in rows %}
+                {% if r.sensor_code not in seen_sensors %}
+                {% if seen_sensors.append(r.sensor_code) %}{% endif %}
+                <option value="{{ r.sensor_code }}">{{ r.sensor_code }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+            <select class="si-select" id="loggerFilter">
+                <option value="">All Loggers</option>
+                {% set seen_loggers = [] %}
+                {% for r in rows %}
+                {% if r.logger not in seen_loggers %}
+                {% if seen_loggers.append(r.logger) %}{% endif %}
+                <option value="{{ r.logger }}">{{ r.logger }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="si-header-right">
+        <span class="si-badge"><i class="fa-regular fa-clock"></i> Last Update : {{ rows[-1].install_at if rows
+            else '-' }}</span>
+        <button class="si-btn download-pdf" onclick="downloadPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+        <button class="si-btn download" onclick="downloadCSV()"><i class="fa-solid fa-file-excel"></i> Excel</button>
+    </div>
+</div>
+
+<!-- Table Wrapper (horizontally scrollable) -->
+<div class="si-table-wrap">
+    <table class="si-table" id="sensorTable">
+        <thead>
+            <tr>
+                <th>Sensor Code</th>
+                <th>Channel Code</th>
+                <th>Logger</th>
+                <th>Index</th>
+                <th>Type</th>
+                <th>Group</th>
+                <th>Sampling<br>HZ</th>
+                <th>Direction</th>
+                <th>Location</th>
+                <th>Operation</th>
+                <th>Trigger Setting</th>
+                <th>Manufacturer</th>
+                <th>Model</th>
+                <th>Serial No.</th>
+                <th>Install</th>
+            </tr>
+        </thead>
+        <tbody id="sensorTableBody">
+            {% for r in rows %}
+            <tr>
+                <td>{{ r.sensor_code or '' }}</td>
+                <td>{{ r.channel_code or '' }}</td>
+                <td>{{ r.logger or '' }}</td>
+                <td>{{ r.channel_index if r.channel_index is not none else '' }}</td>
+                <td>{{ r.sensor_type or '' }}</td>
+                <td>{{ r.sensor_group or '' }}</td>
+                <td>{{ r.sampling_hz if r.sampling_hz is not none else '' }}</td>
+                <td>{{ r.direction or '' }}</td>
+                <td>{{ r.location or '' }}</td>
+                <td>{{ r.operation or '' }}</td>
+                <td>{{ r.trigger_setting or '' }}</td>
+                <td>{{ r.manufacturer or '' }}</td>
+                <td>{{ r.model or '' }}</td>
+                <td>{{ r.serial_no or '' }}</td>
+                <td>{{ r.install_at or '' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- jQuery + DataTables + SheetJS CDN -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        var table = $('#sensorTable').DataTable({
+            dom: '<"dt-top"lf><"dt-scroll-wrap"t><"dt-bottom"ip>',
+            pageLength: 10,
+            lengthMenu: [10, 25, 50, 100],
+            order: [],
+            language: {
+                search: "Search:",
+                lengthMenu: "Show _MENU_ entries",
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                paginate: { previous: "‹", next: "›" }
+            }
+        });
+
+        // ─── Dropdown Filters ───
+        $('#sensorFilter').on('change', function () {
+            var val = $(this).val();
+            table.column(0).search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false).draw();
+        });
+        $('#loggerFilter').on('change', function () {
+            var val = $(this).val();
+            table.column(2).search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false).draw();
+        });
+    });
+
+    // ─── Download XLSX ───
+    function downloadCSV() {
+        var table = document.getElementById('sensorTable');
+        var headers = [];
+        table.querySelectorAll('thead th').forEach(function (th) {
+            headers.push(th.textContent.replace(/\n/g, ' ').trim());
+        });
+
+        var data = [headers];
+        table.querySelectorAll('tbody tr').forEach(function (row) {
+            var rowData = [];
+            row.querySelectorAll('td').forEach(function (td) {
+                rowData.push(td.textContent.trim());
+            });
+            data.push(rowData);
+        });
+
+        var ws = XLSX.utils.aoa_to_sheet(data);
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Sensor Channel Info");
+        XLSX.writeFile(wb, "sensor_channel_info.xlsx");
+    }
+    function downloadPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+        doc.setFontSize(14);
+        doc.text("Sensor & Channel Information", 14, 15);
+        doc.setFontSize(9);
+        doc.setTextColor(100);
+        doc.text(`Exported at: ${new Date().toLocaleString('id-ID')}`, 14, 22);
+
+        const table = document.getElementById('sensorTable');
+        const headers = [];
+        table.querySelectorAll('thead th').forEach(th => {
+            headers.push(th.textContent.replace(/\n/g, ' ').trim());
+        });
+
+        const data = [];
+        // Capture all rows from DataTables (even those not visible due to paging)
+        const tableInstance = $('#sensorTable').DataTable();
+        const allData = tableInstance.rows({ search: 'applied' }).data();
+
+        allData.each(function (row) {
+            data.push(row.map(cell => cell.toString().replace(/<[^>]*>?/gm, '').trim()));
+        });
+
+        doc.autoTable({
+            startY: 27,
+            head: [headers],
+            body: data,
+            theme: 'striped',
+            headStyles: { fillColor: [59, 130, 246] },
+            styles: { fontSize: 7, cellPadding: 1 },
+            columnStyles: {
+                0: { cellWidth: 20 },
+                1: { cellWidth: 20 }
+            }
+        });
+
+        doc.save("sensor_channel_info.pdf");
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,354 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Dashboard Header -->
+<div class="dashboard-header-row">
+    <div class="header-titles">
+        <h2 class="main-title">Welcome back, {{ session.get('username', 'User') }}!</h2>
+        <p class="sub-title">Track your structure with this dashboard.</p>
+    </div>
+</div>
+
+<!-- Main Dashboard Grid -->
+<div class="dashboard-grid">
+    <!-- ROW 1 -->
+    <!-- Welcome Card -->
+    <div class="grid-item pi-card">
+
+        <div class="pi-content">
+            <div class="performance-stats">
+                <div class="stats-col-left">
+                    <div class="rate-item">
+                        <span class="rate-label">OPERATION RATE</span>
+                        <span class="rate-value" id="pi-or">— %</span>
+                    </div>
+                    <div class="rate-item">
+                        <span class="rate-label">THRESHOLD SR</span>
+                        <span class="rate-value" id="pi-tr">— %</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="pi-gauge-container">
+            <div id="piGauge" class="chart-gauge"></div>
+        </div>
+    </div>
+
+    <!-- Weather / Environment Card -->
+    <div class="grid-item weather-card">
+        <div class="weather-left">
+            <div class="weather-icon-row">
+                <i class="fa-solid fa-cloud-sun-rain weather-main-icon"></i>
+            </div>
+            <div class="weather-temp">
+                <span class="weather-temp-val" id="wc-temp">—</span>
+                <span class="weather-temp-unit">°C</span>
+            </div>
+            <p class="weather-desc" id="wc-desc">Loading...</p>
+            <div class="weather-meta">
+                <p><i class="fa-solid fa-location-dot"></i> <span id="wc-location">Bridge Site</span></p>
+                <p><i class="fa-solid fa-calendar-day"></i> <span id="wc-date">—</span></p>
+            </div>
+        </div>
+        <div class="weather-right">
+            <h4 class="weather-right-title">Today's Highlight</h4>
+            <div class="highlight-grid">
+                <div class="highlight-item">
+                    <span class="hl-label">Ambient Temp</span>
+                    <div class="hl-value-row">
+                        <i class="fa-solid fa-temperature-half hl-icon blue"></i>
+                        <span class="hl-big" id="wc-hl-temp">—</span>
+                        <span class="hl-unit">°C</span>
+                    </div>
+                    <span class="hl-sub" id="wc-hl-temp-note">ATRH Sensor</span>
+                </div>
+                <div class="highlight-item">
+                    <span class="hl-label">Humidity</span>
+                    <div class="hl-value-row">
+                        <i class="fa-solid fa-droplet hl-icon cyan"></i>
+                        <span class="hl-big" id="wc-hl-rh">—</span>
+                        <span class="hl-unit">%</span>
+                    </div>
+                    <span class="hl-sub" id="wc-hl-rh-note">Relative Humidity</span>
+                </div>
+                <div class="highlight-item">
+                    <span class="hl-label">Structure Temp</span>
+                    <div class="hl-value-row">
+                        <i class="fa-solid fa-microchip hl-icon orange"></i>
+                        <span class="hl-big" id="wc-hl-stemp">—</span>
+                        <span class="hl-unit">°C</span>
+                    </div>
+                    <span class="hl-sub" id="wc-hl-stemp-note">Structure</span>
+                </div>
+                <div class="highlight-item">
+                    <span class="hl-label">Dew Point</span>
+                    <div class="hl-value-row">
+                        <i class="fa-solid fa-water hl-icon teal"></i>
+                        <span class="hl-big" id="wc-hl-dew">—</span>
+                        <span class="hl-unit">°C</span>
+                    </div>
+                    <span class="hl-sub" id="wc-hl-dew-note">Condensation risk</span>
+                </div>
+                <div class="highlight-item">
+                    <span class="hl-label">Heat Index</span>
+                    <div class="hl-value-row">
+                        <i class="fa-solid fa-fire hl-icon red"></i>
+                        <span class="hl-big" id="wc-hl-heat">—</span>
+                        <span class="hl-unit">°C</span>
+                    </div>
+                    <span class="hl-sub" id="wc-hl-heat-note">Feels like</span>
+                </div>
+                <div class="highlight-item">
+                    <span class="hl-label">Status</span>
+                    <div class="hl-value-row">
+                        <i class="fa-solid fa-shield-halved hl-icon green"></i>
+                        <span class="hl-big hl-status" id="wc-hl-status">—</span>
+                    </div>
+                    <span class="hl-sub" id="wc-hl-status-note">Overall condition</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Storage / Metric Overview Cards (populated from /api/storage) -->
+    <div class="storage-cards-row" id="storageCardsRow">
+        <!-- Cards will be dynamically generated from /api/storage -->
+    </div>
+
+    <script>
+        (function () {
+            const COLORS = [
+                { accent: "#4285f4", bg: "#e8f0fe", icon: "fa-solid fa-hard-drive" },
+                { accent: "#34a853", bg: "#e6f4ea", icon: "fa-solid fa-hard-drive" },
+                { accent: "#f9ab00", bg: "#fef7e0", icon: "fa-solid fa-hard-drive" },
+                { accent: "#ea4335", bg: "#fce8e6", icon: "fa-solid fa-hard-drive" },
+                { accent: "#8e24aa", bg: "#f3e8fd", icon: "fa-solid fa-hard-drive" },
+                { accent: "#00897b", bg: "#e0f2f1", icon: "fa-solid fa-hard-drive" }
+            ];
+
+            function formatBytes(bytes) {
+                if (!bytes && bytes !== 0) return "—";
+                const b = parseFloat(bytes);
+                if (isNaN(b)) return bytes;
+                if (b >= 1e12) return (b / 1e12).toFixed(1) + " TB";
+                if (b >= 1e9) return (b / 1e9).toFixed(1) + " GB";
+                if (b >= 1e6) return (b / 1e6).toFixed(1) + " MB";
+                if (b >= 1e3) return (b / 1e3).toFixed(1) + " KB";
+                return b + " B";
+            }
+
+            function buildCard(disk, idx) {
+                const c = COLORS[idx % COLORS.length];
+                const pct = parseFloat(disk.percent) || 0;
+                const circ = 2 * Math.PI * 20; // ~125.6
+                const dash = (pct / 100) * circ;
+
+                return `
+            <div class="storage-card">
+                <div class="storage-card-top">
+                    <span class="storage-card-title">${disk.disk_name}</span>
+                    <span class="storage-card-icon" style="background: ${c.bg};">
+                        <i class="${c.icon}" style="color: ${c.accent};"></i>
+                    </span>
+                </div>
+                <div class="storage-card-body">
+                    <div class="storage-card-info">
+                        <span class="storage-card-value">${formatBytes(disk.used)} / ${formatBytes(disk.total)}</span>
+                        <span class="storage-card-change ${pct > 80 ? 'down' : 'up'}">
+                            <i class="fa-solid ${pct > 80 ? 'fa-caret-down' : 'fa-caret-up'}"></i>
+                            Free: ${formatBytes(disk.free)}
+                        </span>
+                    </div>
+                    <div class="storage-ring-wrap">
+                        <svg class="storage-ring" viewBox="0 0 48 48">
+                            <circle cx="24" cy="24" r="20" fill="none" stroke="#e5e7eb" stroke-width="4"/>
+                            <circle cx="24" cy="24" r="20" fill="none" stroke="${c.accent}" stroke-width="4"
+                                stroke-dasharray="${dash.toFixed(1)} ${circ.toFixed(1)}" stroke-linecap="round" transform="rotate(-90 24 24)"/>
+                        </svg>
+                        <span class="storage-ring-label">${pct.toFixed(0)}%</span>
+                    </div>
+                </div>
+            </div>`;
+            }
+
+            fetch("/api/storage")
+                .then(r => r.json())
+                .then(data => {
+                    const row = document.getElementById("storageCardsRow");
+                    if (!data.length) {
+                        row.innerHTML = '<div class="storage-card"><div class="storage-card-body"><span class="storage-card-value">No storage data</span></div></div>';
+                        return;
+                    }
+                    row.innerHTML = data.map((d, i) => buildCard(d, i)).join("");
+                })
+                .catch(err => {
+                    console.error("Storage fetch error:", err);
+                    document.getElementById("storageCardsRow").innerHTML =
+                        '<div class="storage-card"><div class="storage-card-body"><span class="storage-card-value">Failed to load</span></div></div>';
+                });
+        })();
+    </script>
+
+    <!-- Anemometer 2D Card -->
+    <div class="grid-item wind-card">
+        <div class="card-header-simple">
+            <h4 class="card-title-simple">Wind Information</h4>
+        </div>
+        <div class="wind-content">
+            <div id="windCompassChart" class="wind-compass-chart"></div>
+        </div>
+        <div class="wind-stats-footer">
+            <div class="w-stat">
+                <span class="w-stat-label">Avg Speed</span>
+                <div class="w-stat-val-row">
+                    <span class="w-stat-val" id="wind-speed">—</span>
+                    <span class="w-stat-unit">m/s</span>
+                </div>
+            </div>
+            <div class="w-stat">
+                <span class="w-stat-label">Direction</span>
+                <div class="w-stat-val-row">
+                    <span class="w-stat-val" id="wind-direction">—</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Anemometer 3D Card - ANM3D01 -->
+    <div class="grid-item wind-card">
+        <div class="card-header-simple">
+            <h4 class="card-title-simple">Wind 3D - ANM3D01</h4>
+        </div>
+        <div class="wind-content">
+            <div id="wind3dCompassChart_anm3d01" class="wind-compass-chart"></div>
+        </div>
+        <div class="wind-stats-footer">
+            <div class="w-stat">
+                <span class="w-stat-label">Speed</span>
+                <div class="w-stat-val-row">
+                    <span class="w-stat-val" id="wind3d-speed-anm3d01">—</span>
+                    <span class="w-stat-unit">m/s</span>
+                </div>
+            </div>
+            <div class="w-stat">
+                <span class="w-stat-label">Elevation</span>
+                <div class="w-stat-val-row">
+                    <span class="w-stat-val" id="wind3d-elevation-anm3d01">—</span>
+                    <span class="w-stat-unit">°</span>
+                </div>
+            </div>
+            <div class="w-stat">
+                <span class="w-stat-label">Direction</span>
+                <div class="w-stat-val-row">
+                    <span class="w-stat-val" id="wind3d-direction-anm3d01">—</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Anemometer 3D Card - ANM3D02 -->
+    <div class="grid-item wind-card">
+        <div class="card-header-simple">
+            <h4 class="card-title-simple">Wind 3D - ANM3D02</h4>
+        </div>
+        <div class="wind-content">
+            <div id="wind3dCompassChart_anm3d02" class="wind-compass-chart"></div>
+        </div>
+        <div class="wind-stats-footer">
+            <div class="w-stat">
+                <span class="w-stat-label">Speed</span>
+                <div class="w-stat-val-row">
+                    <span class="w-stat-val" id="wind3d-speed-anm3d02">—</span>
+                    <span class="w-stat-unit">m/s</span>
+                </div>
+            </div>
+            <div class="w-stat">
+                <span class="w-stat-label">Elevation</span>
+                <div class="w-stat-val-row">
+                    <span class="w-stat-val" id="wind3d-elevation-anm3d02">—</span>
+                    <span class="w-stat-unit">°</span>
+                </div>
+            </div>
+            <div class="w-stat">
+                <span class="w-stat-label">Direction</span>
+                <div class="w-stat-val-row">
+                    <span class="w-stat-val" id="wind3d-direction-anm3d02">—</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cable Stay Monitoring -->
+    <div class="grid-item sensor-bar-card">
+        <div class="bar-card-header">
+            <h3 class="bar-card-title"><span class="bar-title-accent"></span> Cable Stay Monitoring</h3>
+            <div class="cable-legend">
+                <span class="legend-item"><span class="legend-dot design"></span> Design Force</span>
+                <span class="legend-item"><span class="legend-dot current"></span> Current Force</span>
+            </div>
+        </div>
+
+        <div class="cable-bridge-diagram">
+            <img src="{{ url_for('static', filename='assets/bridge_cable.png') }}" alt="Bridge Cable Diagram">
+        </div>
+
+        <svg class="cable-connector-lines" viewBox="0 0 1000 60" preserveAspectRatio="none">
+            <line x1="55" y1="0" x2="55" y2="60" stroke="#60a5fa" stroke-width="1.2" stroke-dasharray="4,3"
+                opacity="0.5" />
+            <line x1="120" y1="0" x2="120" y2="60" stroke="#60a5fa" stroke-width="1.2" stroke-dasharray="4,3"
+                opacity="0.5" />
+            <line x1="175" y1="0" x2="175" y2="60" stroke="#60a5fa" stroke-width="1.2" stroke-dasharray="4,3"
+                opacity="0.5" />
+            <line x1="340" y1="0" x2="340" y2="60" stroke="#60a5fa" stroke-width="1.2" stroke-dasharray="4,3"
+                opacity="0.5" />
+            <line x1="400" y1="0" x2="400" y2="60" stroke="#60a5fa" stroke-width="1.2" stroke-dasharray="4,3"
+                opacity="0.5" />
+            <line x1="450" y1="0" x2="450" y2="60" stroke="#60a5fa" stroke-width="1.2" stroke-dasharray="4,3"
+                opacity="0.5" />
+            <line x1="550" y1="0" x2="550" y2="60" stroke="#60a5fa" stroke-width="1.2" stroke-dasharray="4,3"
+                opacity="0.5" />
+            <line x1="610" y1="0" x2="610" y2="60" stroke="#60a5fa" stroke-width="1.2" stroke-dasharray="4,3"
+                opacity="0.5" />
+            <line x1="660" y1="0" x2="660" y2="60" stroke="#60a5fa" stroke-width="1.2" stroke-dasharray="4,3"
+                opacity="0.5" />
+            <line x1="825" y1="0" x2="825" y2="60" stroke="#60a5fa" stroke-width="1.2" stroke-dasharray="4,3"
+                opacity="0.5" />
+            <line x1="885" y1="0" x2="885" y2="60" stroke="#60a5fa" stroke-width="1.2" stroke-dasharray="4,3"
+                opacity="0.5" />
+            <line x1="945" y1="0" x2="945" y2="60" stroke="#60a5fa" stroke-width="1.2" stroke-dasharray="4,3"
+                opacity="0.5" />
+        </svg>
+
+        <div id="cableStressChart" style="width: 100%; height: 340px;"></div>
+    </div>
+
+
+    <!-- Displacement Monitoring -->
+    <div class="grid-item sensor-bar-card" id="displacementCardArea" style="position: relative;">
+        <div class="bar-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="bar-card-title"><span class="bar-title-accent"></span> Displacement Monitoring</h3>
+            <button class="icon-btn" onclick="captureDisplacement()" title="Capture and Save Image (PNG)"
+                style="font-size: 16px; color: #64748b; background: none; border: none; cursor: pointer;">
+                <i class="fa-solid fa-camera"></i>
+            </button>
+        </div>
+
+        <div class="bridge-displacement-diagram">
+            <img src="{{ url_for('static', filename='assets/bridge_displacement.png') }}"
+                alt="Bridge Displacement Diagram">
+            <div class="disp-nodes-container">
+                <div class="disp-dot disp-t1" data-label="T1" title="Displacement T1"></div>
+                <div class="disp-dot disp-t2" data-label="T2" title="Displacement T2"></div>
+                <div class="disp-dot disp-t3" data-label="T3" title="Displacement T3"></div>
+                <div class="disp-dot disp-t4" data-label="T4" title="Displacement T4"></div>
+                <div class="disp-dot disp-t5" data-label="T5" title="Displacement T5"></div>
+            </div>
+        </div>
+
+        <div id="displacementLineChart" style="width: 100%; height: 280px; margin-top: 15px;"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+    {% endblock %}

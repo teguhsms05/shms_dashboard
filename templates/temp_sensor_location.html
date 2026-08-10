@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="dashboard-header-row">
+    <div class="header-titles">
+        <h2 class="main-title">Sensor Location - Girder</h2>
+        <p class="sub-title">Temperature sensor locations on the bridge girder. Drag dots to reposition, then click Save.</p>
+    </div>
+    <div class="header-actions">
+        <button class="btn-edit" id="btnSave" onclick="savePositions()" style="display:none;">
+            <i class="fa-solid fa-floppy-disk"></i> Save Positions
+        </button>
+    </div>
+</div>
+
+<div class="sensor-location-container">
+    <div class="girder-image-card">
+        <div class="girder-image-wrapper" id="girderWrapper">
+            <svg class="connector-line" id="connectorSvg"></svg>
+            <img id="girderImg" src="{{ url_for('static', filename='assets/girder.png') }}" alt="Girder Sensor Location" onload="onImgLoad()">
+        </div>
+    </div>
+</div>
+
+<div class="sl-legend">
+    <div class="sl-legend-item">
+        <div class="sl-legend-dot"></div> Temperature Sensor (drag to reposition)
+    </div>
+</div>
+
+<style>
+    .sensor-location-container {
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+    }
+    .girder-image-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        padding: 20px;
+        max-width: 100%;
+        overflow: hidden;
+    }
+    .girder-image-wrapper {
+        position: relative;
+        display: inline-block;
+        line-height: 0;
+        min-width: 300px;
+        min-height: 200px;
+        cursor: default;
+    }
+    .girder-image-wrapper img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        user-select: none;
+        pointer-events: none;
+    }
+
+    .dot2 {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background: #f59e0b;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        box-shadow: 0 0 6px rgba(245,158,11,0.6);
+        transform: translate(-50%, -50%);
+        cursor: grab;
+        z-index: 10;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .dot2:hover {
+        transform: translate(-50%, -50%) scale(1.4);
+        box-shadow: 0 0 14px rgba(245,158,11,1);
+        z-index: 20;
+    }
+    .dot2.dragging {
+        cursor: grabbing;
+        transform: translate(-50%, -50%) scale(1.5);
+        box-shadow: 0 0 16px rgba(245,158,11,1);
+        z-index: 30;
+    }
+    .dot2.moved {
+        background: #ea580c;
+        box-shadow: 0 0 8px rgba(234,88,12,0.7);
+    }
+
+    .dot2-tooltip {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(4px);
+        color: #1e293b;
+        padding: 5px 10px;
+        border-radius: 6px;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        font-size: 0.75rem;
+        font-weight: 700;
+        white-space: nowrap;
+        pointer-events: none;
+        z-index: 25;
+        line-height: 1.2;
+        letter-spacing: 0.01em;
+    }
+    .dot2-tooltip .tooltip-val {
+        display: block;
+        font-weight: 500;
+        font-size: 0.68rem;
+        color: #d97706;
+    }
+
+    .dot2-tooltip.top        { transform: translate(-50%, -100%); margin-top: -18px; }
+    .dot2-tooltip.bottom     { transform: translate(-50%, 0);    margin-top: 20px;  }
+    .dot2-tooltip.left       { transform: translate(-100%, -50%); margin-left: -18px; }
+    .dot2-tooltip.right      { transform: translate(0, -50%);    margin-left: 20px;  }
+    .dot2-tooltip.top-left   { transform: translate(-100%, -100%); margin: -14px 0 0 -14px; }
+    .dot2-tooltip.top-right  { transform: translate(0, -100%);    margin: -14px 0 0 14px;  }
+    .dot2-tooltip.bot-left   { transform: translate(-100%, 0);    margin: 14px 0 0 -14px;  }
+    .dot2-tooltip.bot-right  { transform: translate(0, 0);        margin: 14px 0 0 14px;   }
+
+    .connector-line {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 5;
+    }
+
+    .sl-legend {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin-top: 12px;
+        flex-wrap: wrap;
+    }
+    .sl-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.8rem;
+        color: #666;
+    }
+    .sl-legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #f59e0b;
+        border: 1.5px solid #fff;
+        box-shadow: 0 0 4px rgba(245,158,11,0.5);
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    .btn-edit {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        background: #f0fdf4;
+        color: #16a34a;
+        border: 1px solid #bbf7d0;
+    }
+    .btn-edit:hover {
+        background: #dcfce7;
+    }
+</style>
+
+<script>
+    var sensorsData = [];
+    var hasChanges = false;
+
+    function clearDots() {
+        var wrapper = document.getElementById('girderWrapper');
+        wrapper.querySelectorAll('.dot2, .dot2-tooltip').forEach(function(el) { el.remove(); });
+    }
+
+    function renderDots(sensors) {
+        clearDots();
+        var wrapper = document.getElementById('girderWrapper');
+        sensorsData = sensors;
+
+        if (!sensors || sensors.length === 0) return;
+
+        for (var i = 0; i < sensors.length; i++) {
+            var s = sensors[i];
+            var px = s.pos_x != null ? s.pos_x : 10 + i * 10;
+            var py = s.pos_y != null ? s.pos_y : 40;
+            var labelText = (s.sensor_code || s.sensor_id || '').replace('TEMP_', '');
+            var value = s.temperature != null ? s.temperature.toFixed(1) + ' °C' : null;
+            createDot(wrapper, px, py, labelText, value, i);
+        }
+        setTimeout(drawConnectors, 50);
+    }
+
+    function createDot(wrapper, pctX, pctY, label, value, index) {
+        var directions = ['top', 'bottom', 'top-right', 'bot-left', 'left', 'right', 'top-left', 'bot-right'];
+        var dir = directions[index % 8];
+
+        var dot = document.createElement('div');
+        dot.className = 'dot2';
+        dot.style.left = pctX + '%';
+        dot.style.top = pctY + '%';
+        dot.dataset.index = index;
+        dot.addEventListener('mousedown', onDotMouseDown);
+
+        var tip = document.createElement('div');
+        tip.className = 'dot2-tooltip ' + dir;
+        tip.style.left = pctX + '%';
+        tip.style.top = pctY + '%';
+        var html = label;
+        if (value) html += '<span class="tooltip-val">' + value + '</span>';
+        tip.innerHTML = html;
+        tip.dataset.index = index;
+
+        wrapper.appendChild(dot);
+        wrapper.appendChild(tip);
+    }
+
+    function drawConnectors() {
+        var svg = document.getElementById('connectorSvg');
+        var wrapper = document.getElementById('girderWrapper');
+        var wRect = wrapper.getBoundingClientRect();
+        svg.setAttribute('viewBox', '0 0 ' + wRect.width + ' ' + wRect.height);
+        svg.style.width = wRect.width + 'px';
+        svg.style.height = wRect.height + 'px';
+
+        var html = '';
+        var dots = wrapper.querySelectorAll('.dot2');
+        for (var i = 0; i < dots.length; i++) {
+            var dot = dots[i];
+            var idx = dot.dataset.index;
+            var tip = wrapper.querySelector('.dot2-tooltip[data-index="' + idx + '"]');
+            if (!tip) continue;
+
+            var dRect = dot.getBoundingClientRect();
+            var tRect = tip.getBoundingClientRect();
+            var dx = dRect.left + dRect.width / 2 - wRect.left;
+            var dy = dRect.top + dRect.height / 2 - wRect.top;
+            var tx = tRect.left + tRect.width / 2 - wRect.left;
+            var ty = tRect.top + tRect.height / 2 - wRect.top;
+
+            var angle = Math.atan2(ty - dy, tx - dx);
+            var tipR = Math.min(tRect.width, tRect.height) / 2 + 2;
+            var ex = tx - Math.cos(angle) * tipR;
+            var ey = ty - Math.sin(angle) * tipR;
+
+            html += '<line x1="' + dx + '" y1="' + dy + '" x2="' + ex + '" y2="' + ey +
+                '" stroke="rgba(0,0,0,0.25)" stroke-width="1" />';
+            html += '<circle cx="' + dx + '" cy="' + dy + '" r="2" fill="#f59e0b" />';
+        }
+        svg.innerHTML = html;
+    }
+
+    var dragDot = null, dragTip = null, startX, startY, startLeft, startTop;
+    var wrapperRect;
+
+    function onDotMouseDown(e) {
+        e.preventDefault();
+        dragDot = e.target;
+        var idx = dragDot.dataset.index;
+        dragTip = document.querySelector('.dot2-tooltip[data-index="' + idx + '"]');
+        wrapperRect = document.getElementById('girderWrapper').getBoundingClientRect();
+
+        startX = e.clientX;
+        startY = e.clientY;
+        startLeft = parseFloat(dragDot.style.left);
+        startTop = parseFloat(dragDot.style.top);
+
+        dragDot.classList.add('dragging');
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+    }
+
+    function onMouseMove(e) {
+        if (!dragDot) return;
+        var dx = e.clientX - startX;
+        var dy = e.clientY - startY;
+        var pctDx = (dx / wrapperRect.width) * 100;
+        var pctDy = (dy / wrapperRect.height) * 100;
+
+        var newLeft = Math.max(0, Math.min(100, startLeft + pctDx));
+        var newTop = Math.max(0, Math.min(100, startTop + pctDy));
+
+        dragDot.style.left = newLeft + '%';
+        dragDot.style.top = newTop + '%';
+        if (dragTip) {
+            dragTip.style.left = newLeft + '%';
+            dragTip.style.top = newTop + '%';
+        }
+
+        if (!hasChanges) {
+            hasChanges = true;
+            document.getElementById('btnSave').style.display = 'flex';
+        }
+        dragDot.classList.add('moved');
+        drawConnectors();
+    }
+
+    function onMouseUp(e) {
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+        if (dragDot) {
+            dragDot.classList.remove('dragging');
+            var idx = parseInt(dragDot.dataset.index);
+            sensorsData[idx].pos_x = parseFloat(dragDot.style.left);
+            sensorsData[idx].pos_y = parseFloat(dragDot.style.top);
+        }
+        dragDot = null;
+        dragTip = null;
+    }
+
+    function savePositions() {
+        var btn = document.getElementById('btnSave');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+        var movedDots = document.querySelectorAll('.dot2.moved');
+        if (movedDots.length === 0) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Positions';
+            alert('No positions changed.');
+            return;
+        }
+
+        var batch = [];
+        var seen = {};
+        for (var i = 0; i < movedDots.length; i++) {
+            var idx = parseInt(movedDots[i].dataset.index);
+            var s = sensorsData[idx];
+            if (!s || s.pos_x == null || s.pos_y == null || isNaN(s.pos_x) || isNaN(s.pos_y)) continue;
+            if (seen[s.sensor_id]) continue;
+            seen[s.sensor_id] = true;
+            batch.push({ sensor_id: s.sensor_id, pos_x: Number(s.pos_x), pos_y: Number(s.pos_y) });
+        }
+
+        var csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        fetch('/api/temp/sensor-locations/batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify(batch)
+        })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                console.log('Batch save result:', data);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Positions';
+                if (!data.ok) {
+                    alert('Save failed: ' + (data.error || 'Unknown error'));
+                } else {
+                    hasChanges = false;
+                    document.getElementById('btnSave').style.display = 'none';
+                    document.querySelectorAll('.dot2.moved').forEach(function(d) { d.classList.remove('moved'); });
+                    alert('Saved ' + data.count + ' position(s).');
+                }
+            })
+            .catch(function(e) {
+                console.error('Save error:', e);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Positions';
+                alert('Save failed: ' + e.message);
+            });
+    }
+
+    function onImgLoad() { loadData(); }
+
+    window.addEventListener('resize', function() { setTimeout(drawConnectors, 100); });
+
+    function loadData() {
+        fetch('/api/temp/sensor-locations')
+            .then(function(r) { return r.json(); })
+            .then(function(data) { renderDots(data); })
+            .catch(function(e) { console.error('Failed to load:', e); });
+    }
+</script>
+
+{% endblock %}
