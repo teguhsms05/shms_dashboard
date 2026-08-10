@@ -90,7 +90,7 @@ async function loadCablePositions() {
 function clearCableDots() {
     const wrapper = document.getElementById("bridgeOverlayWrapper");
     if (!wrapper) return;
-    wrapper.querySelectorAll(".ct-dot, .ct-dot-label, .ct-tooltip").forEach(el => el.remove());
+    wrapper.querySelectorAll(".ct-dot, .ct-dot-label").forEach(el => el.remove());
 }
 
 function renderCableDots(positions) {
@@ -151,17 +151,6 @@ function createCableDot(wrapper, pctX, pctY, tipX, tipY, label, sensorId, index)
 
     wrapper.appendChild(dot);
     wrapper.appendChild(dotLabel);
-    wrapper.appendChild(tip);
-}
-
-function updateCableDotTooltip(sensorId, tensionAvg, timeStr) {
-    var tip = document.querySelector('.ct-tooltip[data-sensor-id="' + sensorId + '"]');
-    if (!tip) return;
-    var label = (CABLE_MAPPING[sensorId] || sensorId).split("-")[1] || sensorId;
-    var html = label;
-    html += '<span class="tooltip-val">' + tensionAvg.toFixed(1) + ' kN</span>';
-    if (timeStr) html += '<span class="tooltip-time">' + timeStr + '</span>';
-    tip.innerHTML = html;
 }
 
 function drawCableConnectors() {
@@ -177,24 +166,9 @@ function drawCableConnectors() {
     var html = "";
     var dots = wrapper.querySelectorAll(".ct-dot");
     dots.forEach(function(dot) {
-        var sid = dot.dataset.sensorId;
-        var tip = wrapper.querySelector('.ct-tooltip[data-sensor-id="' + sid + '"]');
-        if (!tip) return;
-
         var dRect = dot.getBoundingClientRect();
-        var tRect = tip.getBoundingClientRect();
         var dx = dRect.left + dRect.width / 2 - wRect.left;
         var dy = dRect.top + dRect.height / 2 - wRect.top;
-        var tx = tRect.left + tRect.width / 2 - wRect.left;
-        var ty = tRect.top + tRect.height / 2 - wRect.top;
-
-        var angle = Math.atan2(ty - dy, tx - dx);
-        var tipR = Math.min(tRect.width, tRect.height) / 2 + 2;
-        var ex = tx - Math.cos(angle) * tipR;
-        var ey = ty - Math.sin(angle) * tipR;
-
-        html += '<line x1="' + dx + '" y1="' + dy + '" x2="' + ex + '" y2="' + ey +
-            '" stroke="rgba(2,132,199,0.5)" stroke-width="1.5" stroke-dasharray="4,3" />';
         html += '<circle cx="' + dx + '" cy="' + dy + '" r="3" fill="#0284c7" opacity="0.8" />';
     });
     svg.innerHTML = html;
@@ -211,8 +185,6 @@ function onCableDotMouseDown(e) {
     dragElCt = e.target;
     draggingTypeCt = 'dot';
     var sid = dragElCt.dataset.sensorId;
-    dragDotRefCt = dragElCt;
-    dragTipRefCt = document.querySelector('.ct-tooltip[data-sensor-id="' + sid + '"]');
     var labelEl = document.querySelector('.ct-dot-label[data-sensor-id="' + sid + '"]');
     var wrapper = document.getElementById("bridgeOverlayWrapper");
     var wRect = wrapper.getBoundingClientRect();
@@ -224,28 +196,6 @@ function onCableDotMouseDown(e) {
 
     dragElCt.classList.add("dragging");
     dragElCt._ctLabel = labelEl;
-    window.addEventListener("mousemove", onCableMouseMove);
-    window.addEventListener("mouseup", onCableMouseUp);
-}
-
-function onCableTipMouseDown(e) {
-    if (!IS_ADMIN_CT) return;
-    e.preventDefault();
-    e.stopPropagation();
-    dragElCt = e.target;
-    draggingTypeCt = 'tip';
-    var sid = dragElCt.dataset.sensorId;
-    dragDotRefCt = document.querySelector('.ct-dot[data-sensor-id="' + sid + '"]');
-    dragTipRefCt = dragElCt;
-    var wrapper = document.getElementById("bridgeOverlayWrapper");
-    var wRect = wrapper.getBoundingClientRect();
-
-    startXCt = e.clientX;
-    startYCt = e.clientY;
-    startLeftCt = parseFloat(dragElCt.style.left);
-    startTopCt = parseFloat(dragElCt.style.top);
-
-    dragElCt.classList.add("dragging");
     window.addEventListener("mousemove", onCableMouseMove);
     window.addEventListener("mouseup", onCableMouseUp);
 }
@@ -264,15 +214,9 @@ function onCableMouseMove(e) {
 
     dragElCt.style.left = newLeft + "%";
     dragElCt.style.top = newTop + "%";
-    if (draggingTypeCt === 'dot') {
-        if (dragTipRefCt) {
-            dragTipRefCt.style.left = newLeft + "%";
-            dragTipRefCt.style.top = newTop + "%";
-        }
-        if (dragElCt._ctLabel) {
-            dragElCt._ctLabel.style.left = newLeft + "%";
-            dragElCt._ctLabel.style.top = newTop + "%";
-        }
+    if (dragElCt._ctLabel) {
+        dragElCt._ctLabel.style.left = newLeft + "%";
+        dragElCt._ctLabel.style.top = newTop + "%";
     }
 
     if (!hasCablePosChanges) {
@@ -281,7 +225,6 @@ function onCableMouseMove(e) {
         if (btn) btn.style.display = "flex";
     }
     dragElCt.classList.add("moved");
-    if (draggingTypeCt === 'tip' && dragTipRefCt) dragTipRefCt.classList.add("moved");
     drawCableConnectors();
 }
 
@@ -291,22 +234,10 @@ function onCableMouseUp() {
     if (dragElCt) {
         dragElCt.classList.remove("dragging");
         var idx = parseInt(dragElCt.dataset.index);
-        if (draggingTypeCt === 'dot') {
-            cablePositionsData[idx].pos_x = parseFloat(dragElCt.style.left);
-            cablePositionsData[idx].pos_y = parseFloat(dragElCt.style.top);
-            if (dragTipRefCt) {
-                cablePositionsData[idx].tip_x = parseFloat(dragTipRefCt.style.left);
-                cablePositionsData[idx].tip_y = parseFloat(dragTipRefCt.style.top);
-            }
-        } else {
-            cablePositionsData[idx].tip_x = parseFloat(dragElCt.style.left);
-            cablePositionsData[idx].tip_y = parseFloat(dragElCt.style.top);
-        }
+        cablePositionsData[idx].pos_x = parseFloat(dragElCt.style.left);
+        cablePositionsData[idx].pos_y = parseFloat(dragElCt.style.top);
     }
     dragElCt = null;
-    dragDotRefCt = null;
-    dragTipRefCt = null;
-    draggingTypeCt = '';
 }
 
 window.saveCablePositions = function() {
@@ -316,8 +247,7 @@ window.saveCablePositions = function() {
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
 
     var movedDots = document.querySelectorAll(".ct-dot.moved");
-    var movedTips = document.querySelectorAll(".ct-tooltip.moved");
-    if (movedDots.length === 0 && movedTips.length === 0) {
+    if (movedDots.length === 0) {
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Positions';
         window.SHMToast.info('No positions changed.', 'Info', 3000);
@@ -326,26 +256,13 @@ window.saveCablePositions = function() {
 
     var batch = [];
     var seen = {};
-    function addToBatch(s) {
+    movedDots.forEach(function(dot) {
+        var idx = parseInt(dot.dataset.index);
+        var s = cablePositionsData[idx];
         if (!s || s.pos_x == null || s.pos_y == null || isNaN(s.pos_x) || isNaN(s.pos_y)) return;
         if (seen[s.sensor_id]) return;
         seen[s.sensor_id] = true;
-        batch.push({
-            sensor_id: s.sensor_id,
-            pos_x: Number(s.pos_x),
-            pos_y: Number(s.pos_y),
-            tip_x: s.tip_x != null ? Number(s.tip_x) : null,
-            tip_y: s.tip_y != null ? Number(s.tip_y) : null
-        });
-    }
-
-    movedDots.forEach(function(dot) {
-        var idx = parseInt(dot.dataset.index);
-        addToBatch(cablePositionsData[idx]);
-    });
-    movedTips.forEach(function(tip) {
-        var idx = parseInt(tip.dataset.index);
-        addToBatch(cablePositionsData[idx]);
+        batch.push({ sensor_id: s.sensor_id, pos_x: Number(s.pos_x), pos_y: Number(s.pos_y) });
     });
 
     var csrfMeta = document.querySelector('meta[name="csrf-token"]');
@@ -364,7 +281,7 @@ window.saveCablePositions = function() {
         } else {
             hasCablePosChanges = false;
             btn.style.display = "none";
-            document.querySelectorAll(".ct-dot.moved, .ct-tooltip.moved").forEach(function(d) { d.classList.remove("moved"); });
+            document.querySelectorAll(".ct-dot.moved").forEach(function(d) { d.classList.remove("moved"); });
             window.SHMToast.success("Saved " + data.count + " position(s).", "Berhasil", 6000);
         }
     })
@@ -426,7 +343,6 @@ function updatePointColorFromData(d) {
     }
 
     var timeStr = d.time ? new Date(d.time).toLocaleString() : null;
-    updateCableDotTooltip(d.sensor_id, val, timeStr);
 }
 
 var UNIT_LABELS = {
