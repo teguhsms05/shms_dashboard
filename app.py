@@ -1885,6 +1885,46 @@ def api_cable_tension_normalized():
     })
 
 # =========================
+# STRAIN SENSOR LOCATION
+# =========================
+
+@app.route("/strain/sensor-location")
+@login_required
+def strain_sensor_location():
+    return render_template("strain_sensor_location.html", is_admin=(session.get('role') == 'admin'))
+
+@app.route("/api/strain/sensor-locations")
+def api_strain_sensor_locations():
+    return jsonify(get_strain_sensor_locations())
+
+@app.route("/api/strain/sensor-locations", methods=["POST"])
+@login_required
+def api_save_strain_sensor_position():
+    if session.get('role') != 'admin':
+        return jsonify({"ok": False, "error": "Admin access required"}), 403
+    d = request.get_json() or {}
+    sid, px, py = d.get("sensor_id"), d.get("pos_x"), d.get("pos_y")
+    if not sid or px is None or py is None:
+        return jsonify({"ok": False, "error": "Missing fields"}), 400
+    try:
+        fpx, fpy = float(px), float(py)
+    except (TypeError, ValueError) as e:
+        return jsonify({"ok": False, "error": f"Invalid number: {e}"}), 400
+    ok, err = save_strain_sensor_position(sid, fpx, fpy)
+    return jsonify({"ok": ok, "error": err})
+
+@app.route("/api/strain/sensor-locations/batch", methods=["POST"])
+@login_required
+def api_batch_save_strain_sensor_positions():
+    if session.get('role') != 'admin':
+        return jsonify({"ok": False, "error": "Admin access required"}), 403
+    data = request.get_json() or []
+    if not isinstance(data, list):
+        return jsonify({"ok": False, "error": "Expected array"}), 400
+    ok, err = batch_save_strain_sensor_positions(data)
+    return jsonify({"ok": ok, "error": err, "count": len(data)})
+
+# =========================
 # Run
 # =========================
 if __name__ == "__main__":

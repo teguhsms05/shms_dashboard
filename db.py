@@ -1888,3 +1888,48 @@ def batch_save_sensor_positions(data_list):
     except Exception as e:
         print("DB ERROR batch_save_sensor_positions:", e)
         return False, str(e)
+
+def get_strain_sensor_locations():
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+                SELECT DISTINCT si.sensor_id, si.sensor_code,
+                    COALESCE(sp.x, 10) AS pos_x, COALESCE(sp.y, 40) AS pos_y
+                FROM sensor_info si
+                LEFT JOIN sensor_positions sp ON sp.sensor_id = si.sensor_id AND sp.sensor_type = 'strain'
+                WHERE si.sensor_type = 'Strain' AND si.sensor_id IS NOT NULL
+                ORDER BY si.sensor_id ASC
+            """)
+            return cur.fetchall()
+    except Exception as e:
+        print("DB ERROR get_strain_sensor_locations:", e)
+        return []
+
+def save_strain_sensor_position(sensor_id, pos_x, pos_y):
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO sensor_positions (sensor_id, sensor_type, x, y)
+                VALUES (%s, 'strain', %s, %s)
+                ON CONFLICT (sensor_id, sensor_type) DO UPDATE
+                SET x = EXCLUDED.x, y = EXCLUDED.y
+            """, (sensor_id, pos_x, pos_y))
+            return True, None
+    except Exception as e:
+        print("DB ERROR save_strain_sensor_position:", e)
+        return False, str(e)
+
+def batch_save_strain_sensor_positions(data_list):
+    try:
+        with conn.cursor() as cur:
+            for d in data_list:
+                cur.execute("""
+                    INSERT INTO sensor_positions (sensor_id, sensor_type, x, y)
+                    VALUES (%s, 'strain', %s, %s)
+                    ON CONFLICT (sensor_id, sensor_type) DO UPDATE
+                    SET x = EXCLUDED.x, y = EXCLUDED.y
+                """, (d["sensor_id"], d["pos_x"], d["pos_y"]))
+            return True, None
+    except Exception as e:
+        print("DB ERROR batch_save_strain_sensor_positions:", e)
+        return False, str(e)

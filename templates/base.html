@@ -295,6 +295,10 @@
                     <span class="icon"><i class="fa-solid fa-chart-line"></i></span>
                     <span class="label">Strain</span>
                 </a>
+                <a href="/strain/sensor-location" class="nav-item {% if request.endpoint == 'strain_sensor_location' %}active{% endif %}">
+                    <span class="icon"><i class="fa-solid fa-location-dot"></i></span>
+                    <span class="label">Sensor Location</span>
+                </a>
 
                 <div
                     class="nav-group has-submenu {% if request.endpoint in ['strain_trigger_page', 'strain_trigger_sensor_page'] %}open{% endif %}">
