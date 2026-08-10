@@ -307,7 +307,8 @@ window.saveCablePositions = function() {
         batch.push({ sensor_id: s.sensor_id, pos_x: Number(s.pos_x), pos_y: Number(s.pos_y) });
     });
 
-    var csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    var csrfToken = csrfMeta ? csrfMeta.content || '' : '';
     fetch("/api/cable-tension/positions/batch", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },

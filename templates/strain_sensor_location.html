@@ -395,8 +395,9 @@
             seen[s.sensor_id] = true;
             batch.push({ sensor_id: s.sensor_id, pos_x: Number(s.pos_x), pos_y: Number(s.pos_y) });
         }
+        var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        var csrfToken = csrfMeta ? csrfMeta.content || '' : '';
 
-        var csrfToken = document.querySelector('meta[name="csrf-token"]').content;
         fetch('/api/strain/sensor-locations/batch', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
