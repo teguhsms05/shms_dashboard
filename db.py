@@ -1894,6 +1894,8 @@ def get_strain_sensor_locations():
                 SELECT si.sensor_id, si.sensor_code,
                     COALESCE(sp.pos_x, NULL) AS pos_x,
                     COALESCE(sp.pos_y, NULL) AS pos_y,
+                    COALESCE(sp.tip_x, NULL) AS tip_x,
+                    COALESCE(sp.tip_y, NULL) AS tip_y,
                     sp.updated_at,
                     st.strain_ue, st.temp_c, st.time AS last_time
                 FROM sensor_info si
@@ -1937,10 +1939,11 @@ def batch_save_strain_sensor_positions(data_list):
     try:
         with conn.cursor() as cur:
             cur.executemany("""
-                INSERT INTO public.sensor_position (sensor_id, pos_x, pos_y)
-                VALUES (%(sensor_id)s, %(pos_x)s, %(pos_y)s)
+                INSERT INTO public.sensor_position (sensor_id, pos_x, pos_y, tip_x, tip_y)
+                VALUES (%(sensor_id)s, %(pos_x)s, %(pos_y)s, %(tip_x)s, %(tip_y)s)
                 ON CONFLICT (sensor_id) DO UPDATE
-                SET pos_x = EXCLUDED.pos_x, pos_y = EXCLUDED.pos_y
+                SET pos_x = EXCLUDED.pos_x, pos_y = EXCLUDED.pos_y,
+                    tip_x = EXCLUDED.tip_x, tip_y = EXCLUDED.tip_y
             """, data_list)
             return True, None
     except Exception as e:

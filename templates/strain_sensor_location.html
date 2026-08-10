@@ -116,6 +116,19 @@
         letter-spacing: 0.02em;
         transition: opacity 0.15s;
     }
+    .dot2-tooltip.draggable {
+        cursor: move;
+        user-select: none;
+    }
+    .dot2-tooltip.dragging {
+        cursor: grabbing;
+        z-index: 30;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        background: rgba(30,41,59,0.95);
+    }
+    .dot2-tooltip.moved {
+        border-color: rgba(245,158,11,0.5);
+    }
     .dot2-tooltip .tooltip-val {
         display: block;
         font-weight: 700;
@@ -226,15 +239,17 @@
             var s = sensors[i];
             var px = s.pos_x != null ? s.pos_x : 10 + i * 10;
             var py = s.pos_y != null ? s.pos_y : 40;
+            var tx = s.tip_x != null ? s.tip_x : null;
+            var ty = s.tip_y != null ? s.tip_y : null;
             var labelText = s.sensor_id || s.sensor_code || '';
             var value = s.strain_ue != null ? s.strain_ue.toFixed(2) + ' \u03BC\u03B5' : null;
             var updateTime = s.last_time ? s.last_time.replace('T', ' ').substring(0, 19) : null;
-            createDot(wrapper, px, py, labelText, value, updateTime, i);
+            createDot(wrapper, px, py, tx, ty, labelText, value, updateTime, i);
         }
         setTimeout(drawConnectors, 50);
     }
 
-    function createDot(wrapper, pctX, pctY, label, value, updateTime, index) {
+    function createDot(wrapper, pctX, pctY, tipX, tipY, label, value, updateTime, index) {
         var directions = ['top', 'bottom', 'top-right', 'bot-left', 'left', 'right', 'top-left', 'bot-right'];
         var dir = directions[index % 8];
 
@@ -244,17 +259,24 @@
         dot.style.left = pctX + '%';
         dot.style.top = pctY + '%';
         dot.dataset.index = index;
+        dot.dataset.type = 'dot';
         if (IS_ADMIN) dot.addEventListener('mousedown', onDotMouseDown);
 
         var tip = document.createElement('div');
         tip.className = 'dot2-tooltip ' + dir;
-        tip.style.left = pctX + '%';
-        tip.style.top = pctY + '%';
+        tip.style.left = (tipX != null ? tipX : pctX) + '%';
+        tip.style.top = (tipY != null ? tipY : pctY) + '%';
+        if (IS_ADMIN) {
+            tip.classList.add('draggable');
+            tip.dataset.type = 'tip';
+        }
+        tip.style.pointerEvents = IS_ADMIN ? 'auto' : 'none';
         var html = '<span style="font-size:0.85rem;letter-spacing:0.04em;font-weight:700;">' + label + '</span>';
         if (value) html += '<span class="tooltip-val">' + value + '</span>';
         if (updateTime) html += '<span class="tooltip-time">' + updateTime + '</span>';
         tip.innerHTML = html;
         tip.dataset.index = index;
+        if (IS_ADMIN) tip.addEventListener('mousedown', onTipMouseDown);
 
         wrapper.appendChild(dot);
         wrapper.appendChild(tip);
@@ -295,28 +317,52 @@
         svg.innerHTML = html;
     }
 
-    var dragDot = null, dragTip = null, startX, startY, startLeft, startTop;
+    var dragEl = null, dragDotRef = null, dragTipRef = null, startX, startY, startLeft, startTop;
     var wrapperRect;
+    var draggingType = ''; // 'dot' or 'tip'
 
     function onDotMouseDown(e) {
         e.preventDefault();
-        dragDot = e.target;
-        var idx = dragDot.dataset.index;
-        dragTip = document.querySelector('.dot2-tooltip[data-index="' + idx + '"]');
+        e.stopPropagation();
+        dragEl = e.target;
+        draggingType = 'dot';
+        var idx = dragEl.dataset.index;
+        dragDotRef = dragEl;
+        dragTipRef = document.querySelector('.dot2-tooltip[data-index="' + idx + '"]');
         wrapperRect = document.getElementById('girderWrapper').getBoundingClientRect();
 
         startX = e.clientX;
         startY = e.clientY;
-        startLeft = parseFloat(dragDot.style.left);
-        startTop = parseFloat(dragDot.style.top);
+        startLeft = parseFloat(dragEl.style.left);
+        startTop = parseFloat(dragEl.style.top);
 
-        dragDot.classList.add('dragging');
+        dragEl.classList.add('dragging');
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+    }
+
+    function onTipMouseDown(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dragEl = e.target;
+        draggingType = 'tip';
+        var idx = dragEl.dataset.index;
+        dragDotRef = document.querySelector('.dot2[data-index="' + idx + '"]');
+        dragTipRef = dragEl;
+        wrapperRect = document.getElementById('girderWrapper').getBoundingClientRect();
+
+        startX = e.clientX;
+        startY = e.clientY;
+        startLeft = parseFloat(dragEl.style.left);
+        startTop = parseFloat(dragEl.style.top);
+
+        dragEl.classList.add('dragging');
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('mouseup', onMouseUp);
     }
 
     function onMouseMove(e) {
-        if (!dragDot) return;
+        if (!dragEl) return;
         var dx = e.clientX - startX;
         var dy = e.clientY - startY;
         var pctDx = (dx / wrapperRect.width) * 100;
@@ -325,32 +371,45 @@
         var newLeft = Math.max(0, Math.min(100, startLeft + pctDx));
         var newTop = Math.max(0, Math.min(100, startTop + pctDy));
 
-        dragDot.style.left = newLeft + '%';
-        dragDot.style.top = newTop + '%';
-        if (dragTip) {
-            dragTip.style.left = newLeft + '%';
-            dragTip.style.top = newTop + '%';
+        dragEl.style.left = newLeft + '%';
+        dragEl.style.top = newTop + '%';
+
+        if (draggingType === 'dot' && dragTipRef) {
+            dragTipRef.style.left = newLeft + '%';
+            dragTipRef.style.top = newTop + '%';
         }
 
         if (!hasChanges) {
             hasChanges = true;
             document.getElementById('btnSave').style.display = 'flex';
         }
-        dragDot.classList.add('moved');
+        dragEl.classList.add('moved');
+        if (draggingType === 'tip' && dragTipRef) dragTipRef.classList.add('moved');
         drawConnectors();
     }
 
     function onMouseUp(e) {
         window.removeEventListener('mousemove', onMouseMove);
         window.removeEventListener('mouseup', onMouseUp);
-        if (dragDot) {
-            dragDot.classList.remove('dragging');
-            var idx = parseInt(dragDot.dataset.index);
-            sensorsData[idx].pos_x = parseFloat(dragDot.style.left);
-            sensorsData[idx].pos_y = parseFloat(dragDot.style.top);
+        if (dragEl) {
+            dragEl.classList.remove('dragging');
+            var idx = parseInt(dragEl.dataset.index);
+            if (draggingType === 'dot') {
+                sensorsData[idx].pos_x = parseFloat(dragEl.style.left);
+                sensorsData[idx].pos_y = parseFloat(dragEl.style.top);
+                if (dragTipRef) {
+                    sensorsData[idx].tip_x = parseFloat(dragTipRef.style.left);
+                    sensorsData[idx].tip_y = parseFloat(dragTipRef.style.top);
+                }
+            } else {
+                sensorsData[idx].tip_x = parseFloat(dragEl.style.left);
+                sensorsData[idx].tip_y = parseFloat(dragEl.style.top);
+            }
         }
-        dragDot = null;
-        dragTip = null;
+        dragEl = null;
+        dragDotRef = null;
+        dragTipRef = null;
+        draggingType = '';
     }
 
     function savePositions() {
@@ -374,7 +433,29 @@
             if (!s || s.pos_x == null || s.pos_y == null || isNaN(s.pos_x) || isNaN(s.pos_y)) continue;
             if (seen[s.sensor_id]) continue;
             seen[s.sensor_id] = true;
-            batch.push({ sensor_id: s.sensor_id, pos_x: Number(s.pos_x), pos_y: Number(s.pos_y) });
+            batch.push({
+                sensor_id: s.sensor_id,
+                pos_x: Number(s.pos_x),
+                pos_y: Number(s.pos_y),
+                tip_x: s.tip_x != null ? Number(s.tip_x) : null,
+                tip_y: s.tip_y != null ? Number(s.tip_y) : null
+            });
+        }
+        // Also save tip-only changes
+        var movedTips = document.querySelectorAll('.dot2-tooltip.moved');
+        for (var j = 0; j < movedTips.length; j++) {
+            var tidx = parseInt(movedTips[j].dataset.index);
+            var ts = sensorsData[tidx];
+            if (!ts || ts.sensor_id == null) continue;
+            if (seen[ts.sensor_id]) continue;
+            seen[ts.sensor_id] = true;
+            batch.push({
+                sensor_id: ts.sensor_id,
+                pos_x: Number(ts.pos_x),
+                pos_y: Number(ts.pos_y),
+                tip_x: ts.tip_x != null ? Number(ts.tip_x) : null,
+                tip_y: ts.tip_y != null ? Number(ts.tip_y) : null
+            });
         }
         var csrfMeta = document.querySelector('meta[name="csrf-token"]');
         var csrfToken = csrfMeta ? csrfMeta.content || '' : '';
